@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>delcFACILITIES</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="https://delcdata.github.io/DELCAppsHub/shared-auth.js?v=3"></script>
+<style>
+:root{
+  --navy:#1B3254; --navy2:#26446f; --gold:#C8973A; --gold2:#f3e6cc;
+  --bg:#F5F5F7; --card:#fff; --ink:#1d2433; --muted:#6b7280; --line:#e5e7eb; --soft:#fafafa;
+  --ok:#1E7F45; --okbg:#E6F4EA; --warn:#A15C00; --warnbg:#FDF1DC; --bad:#C0362C; --badbg:#FBEAE8; --info:#1f4f9c; --infobg:#E8EEFB;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:15px;-webkit-tap-highlight-color:transparent}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:var(--navy2)}
+.hidden{display:none!important}
+/* header */
+.top{background:var(--navy);color:#fff;display:flex;align-items:center;gap:12px;padding:10px 18px;position:sticky;top:0;z-index:20;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:8px;font-weight:700;letter-spacing:.2px;white-space:nowrap;font-size:16px}
+.logo{background:var(--gold);color:var(--navy);border-radius:6px;padding:2px 7px;font-weight:800;font-size:14px}
+.spacer{flex:1}
+.tbtn{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:8px;padding:6px 11px;font-size:13px;text-decoration:none}
+.tabs{display:flex;gap:2px;padding:0 12px;background:var(--navy);overflow-x:auto;position:sticky;top:52px;z-index:19}
+.tab{background:transparent;border:0;color:#c9d3e3;padding:10px 14px;border-radius:10px 10px 0 0;font-weight:600;white-space:nowrap;font-size:14px}
+.tab.on{background:var(--bg);color:var(--navy)}
+.tab .n{background:var(--gold);color:var(--navy);border-radius:999px;padding:0 6px;font-size:11px;margin-left:5px;font-weight:800}
+.demo-banner{background:#dbeafe;color:#1e3a8a;text-align:center;font-size:13px;padding:5px}
+/* generic */
+.page{max-width:1240px;margin:0 auto;padding:18px}
+.btn{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 14px;font-weight:600;color:var(--navy);white-space:nowrap}
+.btn:hover{border-color:var(--navy)}
+.btn.pri{background:var(--navy);color:#fff;border-color:var(--navy)}
+.btn.gold{background:var(--gold);color:#fff;border-color:var(--gold)}
+.btn.ok{background:var(--ok);color:#fff;border-color:var(--ok)}
+.btn.bad{color:var(--bad);border-color:#efc2bd}
+.btn.sm{padding:5px 10px;font-size:13px;border-radius:8px}
+.btn.xs{padding:3px 8px;font-size:12px;border-radius:7px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:0 1px 2px rgba(16,24,40,.04)}
+.card h3{margin:0 0 10px;color:var(--navy);font-size:16px}
+.muted{color:var(--muted)}.small{font-size:13px}.tiny{font-size:12px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.between{justify-content:space-between}
+.stack{display:flex;flex-direction:column;gap:12px}
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted);font-weight:600}
+label.f input,label.f select,label.f textarea,.inp{border:1px solid var(--line);border-radius:10px;padding:9px 11px;background:#fff;color:var(--ink);font-size:15px;min-width:0;width:100%}
+label.f textarea{resize:vertical}
+label.chk{display:flex;gap:8px;align-items:center;font-size:14px}
+.chip{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:2px 9px;font-size:12px;font-weight:700;background:#eef1f6;color:var(--navy);white-space:nowrap}
+.chip.ok{background:var(--okbg);color:var(--ok)}.chip.warn{background:var(--warnbg);color:var(--warn)}.chip.bad{background:var(--badbg);color:var(--bad)}.chip.info{background:var(--infobg);color:var(--info)}.chip.gray{background:#f0f0f2;color:#555}
+.chip.gold{background:var(--gold2);color:#7a5200}
+.empty{color:var(--muted);text-align:center;padding:28px 10px;font-size:14px}
+.sectitle{font-size:12px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);margin:4px 0 6px}
+/* login */
+.center{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px}
+.login{width:100%;max-width:400px}
+.login h1{margin:6px 0 2px;color:var(--navy);font-size:24px}
+.err{color:var(--bad);font-size:13px;min-height:18px}
+.link{background:none;border:0;color:var(--navy2);text-decoration:underline;padding:0;font-size:13px;text-align:left}
+/* dashboard */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px}
+.stat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px;cursor:pointer;text-align:left}
+.stat b{display:block;font-size:26px;color:var(--navy);line-height:1.1}
+.stat span{font-size:13px;color:var(--muted)}
+.stat.alert{border-color:#efb3ab;background:#fff7f6}.stat.alert b{color:var(--bad)}
+.dash{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:16px;align-items:start}
+/* lists */
+.list{display:flex;flex-direction:column;gap:8px}
+.item{background:#fff;border:1px solid var(--line);border-radius:14px;padding:11px 13px;display:flex;gap:12px;align-items:center;cursor:pointer}
+.item:hover{border-color:#c7ccd6}
+.item .ic{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:19px;flex:none;background:#f1f3f7}
+.item .main{flex:1;min-width:0}
+.item .t{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item .s{font-size:13px;color:var(--muted);display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:2px}
+.item .right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex:none}
+.item .thumb{width:44px;height:44px;border-radius:8px;object-fit:cover;flex:none;border:1px solid var(--line)}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.toolbar .inp{width:auto;flex:1;min-width:180px}
+.seg{display:inline-flex;background:#e9eaee;border-radius:10px;padding:3px;gap:2px;flex-wrap:wrap}
+.seg button{border:0;background:transparent;padding:6px 11px;border-radius:8px;font-weight:600;font-size:13px;color:#444}
+.seg button.on{background:#fff;color:var(--navy);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.bar{height:8px;background:#eceef2;border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ok);border-radius:99px}
+.bar.over i{background:var(--bad)}
+.pcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px}
+.pcard{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden;cursor:pointer;display:flex;flex-direction:column}
+.pcard .ph{height:130px;background:#eef0f4 center/cover no-repeat;display:flex;align-items:center;justify-content:center;font-size:34px;color:#b5bccb}
+.pcard .bd{padding:12px 14px;display:flex;flex-direction:column;gap:7px}
+table.tb{width:100%;border-collapse:collapse;font-size:14px;background:#fff}
+table.tb th{text-align:left;font-size:12px;color:var(--muted);padding:8px;border-bottom:1px solid var(--line);background:#fafafa}
+table.tb td{padding:8px;border-bottom:1px solid #f0f0f2;vertical-align:top}
+.tablewrap{overflow:auto;border:1px solid var(--line);border-radius:14px;background:#fff}
+/* modal */
+.modal-bg{position:fixed;inset:0;background:rgba(15,23,42,.45);display:flex;align-items:flex-end;justify-content:center;z-index:50}
+.modal{background:#fff;width:100%;max-width:640px;max-height:94vh;overflow:auto;border-radius:20px 20px 0 0;padding:18px;box-shadow:0 -10px 40px rgba(0,0,0,.25)}
+.modal.wide{max-width:980px}
+@media(min-width:760px){.modal-bg{align-items:center;padding:20px}.modal{border-radius:20px}}
+.modal h2{margin:0;color:var(--navy);font-size:20px}
+.mhead{display:flex;align-items:flex-start;gap:10px;justify-content:space-between;margin-bottom:14px}
+.x{border:0;background:#f1f1f3;border-radius:50%;width:34px;height:34px;font-size:18px;line-height:1;flex:none}
+.mgrid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:18px}
+.mfoot{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;border-top:1px solid var(--line);padding-top:12px;margin-top:14px;position:sticky;bottom:-18px;background:#fff;padding-bottom:4px}
+.box{border:1px solid var(--line);border-radius:14px;padding:12px}
+.photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
+.photo{position:relative;border-radius:10px;overflow:hidden;border:1px solid var(--line);background:#f4f4f6}
+.photo img{width:100%;height:90px;object-fit:cover;display:block;cursor:zoom-in}
+.photo .cap{font-size:11px;padding:3px 5px;display:flex;gap:4px;align-items:center}
+.photo .cap select{font-size:11px;border:0;background:transparent;padding:0;max-width:70px}
+.photo .del{position:absolute;top:4px;right:4px;border:0;background:rgba(0,0,0,.55);color:#fff;border-radius:50%;width:22px;height:22px;font-size:12px;line-height:1}
+.photo .tag{position:absolute;left:4px;top:4px;background:rgba(27,50,84,.85);color:#fff;border-radius:6px;font-size:10px;font-weight:700;padding:1px 5px;text-transform:uppercase}
+.addphoto{border:2px dashed #cfd4dd;border-radius:10px;height:90px;display:flex;align-items:center;justify-content:center;flex-direction:column;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;background:#fff}
+.addphoto:hover{border-color:var(--navy);color:var(--navy)}
+.ck{display:flex;gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid #f3f3f5}
+.ck input[type=checkbox]{width:18px;height:18px;flex:none}
+.ck span{flex:1}
+.ck.done span{text-decoration:line-through;color:var(--muted)}
+.rm{border:0;background:none;color:#b0b5bf;font-size:14px;padding:2px 6px}
+.rm:hover{color:var(--bad)}
+.logline{font-size:13px;padding:6px 0;border-bottom:1px solid #f3f3f5}
+.logline b{color:var(--navy)}
+.lightbox{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:70;display:flex;align-items:center;justify-content:center;padding:20px}
+.lightbox img{max-width:100%;max-height:92vh;border-radius:8px}
+.rcpt{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:6px;max-height:220px;overflow:auto;border:1px solid var(--line);border-radius:12px;padding:8px}
+.rcpt label{display:flex;gap:7px;align-items:flex-start;font-size:13px;padding:4px}
+.notice{background:var(--warnbg);color:#6b4500;border-radius:12px;padding:10px 12px;font-size:13px}
+.notice.info{background:var(--infobg);color:#1f3f86}
+#toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:90;display:flex;flex-direction:column;gap:6px;align-items:center;pointer-events:none}
+.toast{background:var(--navy);color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;box-shadow:0 6px 20px rgba(0,0,0,.2);max-width:92vw}
+.toast.bad{background:var(--bad)}.toast.ok{background:var(--ok)}
+/* public form */
+.pub{max-width:560px;margin:0 auto;padding:18px}
+.pubhead{background:var(--navy);color:#fff;border-radius:18px;padding:18px;margin-bottom:14px}
+.pubhead h1{margin:6px 0 2px;font-size:22px}
+.choice{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.choice button{border:2px solid var(--line);background:#fff;border-radius:14px;padding:12px 6px;font-weight:700;color:var(--navy);display:flex;flex-direction:column;align-items:center;gap:4px;font-size:13px}
+.choice button.on{border-color:var(--gold);background:#fffaf0}
+.choice button span{font-size:24px}
+@media(max-width:900px){.dash,.mgrid{grid-template-columns:1fr}}
+@media(max-width:600px){.grid2,.grid3{grid-template-columns:1fr}.page{padding:12px}.item .right{display:none}.top{padding:8px 12px;gap:8px}.top .uname{display:none}.tabs{position:static}}
+@media print{
+  .top,.tabs,.demo-banner,.toolbar,.btn,#toast,.mfoot,.addphoto,.rm,.del,.x{display:none!important}
+  body{background:#fff}
+  body.print-modal #app{display:none}
+  body.print-modal .modal-bg{position:static;background:none;display:block}
+  body.print-modal .modal{max-height:none;box-shadow:none;max-width:none;overflow:visible}
+  .card,.item,.box{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="modal"></div>
+<div id="lightbox"></div>
+<div id="toast"></div>
+<script>
+/* ============================================================
+   delcFACILITIES — DELC Facility Management (single-file app)
+   Data: shared DELC Supabase project, fac_* tables, fac-photos bucket,
+   fac-send-email edge function. Public "report an issue" form at ?report
+   ============================================================ */
+const CONFIG = {
+  url: 'https://ksdxhqyusaylfpyeecbv.supabase.co',
+  key: 'sb_publishable_2LJBKHTG1fXcMzWWHf1Mrg_EsrC4_JC',
+  password: 'Delc.1200!',      // fallback only if the hub login service can't be reached
+  appKey: 'facilities',
+  hubUrl: 'https://delcdata.github.io/DELCAppsHub/',
+  bucket: 'fac-photos',
+  fn: 'fac-send-email',
+  fnKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtzZHhocXl1c2F5bGZweWVlY2J2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1NTE1NDgsImV4cCI6MjEwNDEyNzU0OH0.6HI0XWmlIfzyVy0iRH2GkAVNqYIZQwMeNhr4drTOUNo',   // public anon key (JWT) for the email function
+  intake: 'office@mydelc.org',          // outside requests are emailed here for review & assignment
+  intakeWho: 'Steph Benton'
+};
+const TYPES = {
+  janitorial: {name:'Janitorial', icon:'🧹', color:'#00A3A3'},
+  repair:     {name:'Repair',     icon:'🔧', color:'#2F80ED'},
+  pm:         {name:'Preventive', icon:'🗓️', color:'#9B51E0'},
+  project:    {name:'Project',    icon:'🎨', color:'#C8973A'},
+  other:      {name:'Other',      icon:'📋', color:'#6b7280'}
+};
+const STATUS = {
+  new:{name:'New', cls:'info'}, assigned:{name:'Assigned', cls:''}, in_progress:{name:'In progress', cls:'gold'},
+  on_hold:{name:'On hold', cls:'gray'}, done:{name:'Done', cls:'ok'}, cancelled:{name:'Cancelled', cls:'gray'}
+};
+const PRIORITY = {low:{name:'Low', cls:'gray'}, normal:{name:'Normal', cls:''}, high:{name:'High', cls:'warn'}, urgent:{name:'Urgent', cls:'bad'}};
+const KINDS = {staff:'Staff', volunteer:'Volunteer', committee:'Property committee', contractor:'Contractor / vendor'};
+const UNITS = {day:'day', week:'week', month:'month', year:'year'};
+const DEF_LOCATIONS = ['Sanctuary','Narthex','Social Hall','Family Life Center','Kitchen','Church Office','Pastor’s Study','Restrooms','Nursery','Classrooms','Basement / Mechanical','Roof','Parking Lot','Grounds','Whole building'];
+const DEF_CATEGORIES = ['HVAC','Plumbing','Electrical','Fire & Safety','Appliances','Roof & Exterior','Grounds','Cleaning','Building'];
+const TBL = {contacts:'fac_contacts', assets:'fac_assets', pm:'fac_pm', work:'fac_work', emails:'fac_emails'};
+
+/* ---------------- state ---------------- */
+const S = {
+  user:null, userName:'', backend:'remote', loaded:false,
+  contacts:[], assets:[], pm:[], work:[], emails:[], settings:{},
+  view:'dash', wtype:'open', wstat:'open', q:'', modal:null, emailCfg:undefined
+};
+
+/* ---------------- utils ---------------- */
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid = () => (crypto.randomUUID ? crypto.randomUUID() : 'id-' + Date.now().toString(36) + Math.random().toString(36).slice(2));
+const nowIso = () => new Date().toISOString();
+const clone = o => JSON.parse(JSON.stringify(o));
+const num = v => { const n = parseFloat(v); return isNaN(n) ? 0 : n; };
+const money = n => '$' + (Math.round((+n || 0) * 100) / 100).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+const lsGet = (k, d=null) => { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch(e) { return d; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) {} };
+const pad = n => String(n).padStart(2, '0');
+const isoOf = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const today = () => isoOf(new Date());
+const dOf = iso => { const [y, m, d] = String(iso).slice(0, 10).split('-').map(Number); return new Date(y, m - 1, d); };
+const daysFrom = iso => Math.round((dOf(iso) - dOf(today())) / 86400000);
+const fmtD = iso => iso ? dOf(iso).toLocaleDateString([], {month:'short', day:'numeric', year: dOf(iso).getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined}) : '';
+const fmtDT = iso => iso ? new Date(iso).toLocaleString([], {month:'short', day:'numeric', hour:'numeric', minute:'2-digit'}) : '';
+function addInterval(iso, n, unit) {
+  const d = dOf(iso || today()); n = Math.max(1, n | 0);
+  if (unit === 'day') d.setDate(d.getDate() + n);
+  else if (unit === 'week') d.setDate(d.getDate() + 7 * n);
+  else if (unit === 'year') d.setFullYear(d.getFullYear() + n);
+  else { const day = d.getDate(); d.setDate(1); d.setMonth(d.getMonth() + n); d.setDate(Math.min(day, new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate())); }
+  return isoOf(d);
+}
+const every = p => `Every ${(p.every_n|0) > 1 ? p.every_n + ' ' + UNITS[p.every_unit] + 's' : UNITS[p.every_unit] || 'month'}`;
+function toast(msg, kind='') {
+  const el = document.createElement('div'); el.className = 'toast ' + kind; el.textContent = msg;
+  const box = $('#toast'); box.appendChild(el); while (box.children.length > 3) box.firstChild.remove(); setTimeout(() => el.remove(), kind === 'bad' ? 6000 : 3000);
+}
+const cn = id => S.contacts.find(c => c.id === id);
+const asset = id => S.assets.find(a => a.id === id);
+const pmOf = id => S.pm.find(p => p.id === id);
+const wo = id => S.work.find(w => w.id === id);
+const cname = id => { const c = cn(id); return c ? c.name + (c.company && c.kind === 'contractor' ? ' (' + c.company + ')' : '') : ''; };
+const locations = () => (S.settings.locations && S.settings.locations.length) ? S.settings.locations : DEF_LOCATIONS;
+const categories = () => (S.settings.categories && S.settings.categories.length) ? S.settings.categories : DEF_CATEGORIES;
+const isOpen = w => !['done', 'cancelled'].includes(w.status);
+const spent = w => (w.costs || []).reduce((a, c) => a + num(c.amount), 0);
+const me = () => S.userName || S.user || 'Someone';
+
+/* ---------------- photos: shrink before upload ---------------- */
+async function shrink(file, max) {
+  try {
+    const bmp = await createImageBitmap(file, {imageOrientation: 'from-image'});
+    const sc = Math.min(1, max / Math.max(bmp.width, bmp.height));
+    const c = document.createElement('canvas'); c.width = Math.round(bmp.width * sc); c.height = Math.round(bmp.height * sc);
+    c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+    const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.82));
+    return blob || file;
+  } catch (e) { return file; }
+}
+const blobToDataUrl = b => new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(b); });
+
+/* ---------------- backends ---------------- */
+const Local = {
+  key: 'fac_demo_db',
+  db() { const d = lsGet(this.key) || {}; ['contacts','assets','pm','work','emails'].forEach(k => d[k] = d[k] || []); d.settings = d.settings || {}; d.seq = d.seq || 1000; return d; },
+  save(d) { try { localStorage.setItem(this.key, JSON.stringify(d)); } catch (e) { toast('Demo storage is full — remove some photos', 'bad'); } },
+  async loadAll() { const d = this.db(); return {contacts:d.contacts, assets:d.assets, pm:d.pm, work:d.work, emails:d.emails.slice().reverse(), settings:d.settings}; },
+  async upsert(kind, row) { const d = this.db(); if (kind === 'work' && !row.num) row.num = ++d.seq; const a = d[kind]; const i = a.findIndex(x => x.id === row.id); if (i >= 0) a[i] = row; else a.push(row); this.save(d); return row; },
+  async remove(kind, id) { const d = this.db(); d[kind] = d[kind].filter(r => r.id !== id); this.save(d); },
+  async saveSettings(data) { const d = this.db(); d.settings = data; this.save(d); },
+  async upload(blob, path) { const small = await shrink(blob, 900); return {path, url: await blobToDataUrl(small)}; },
+  async unupload() {},
+  async fn(body) { if (body.mode === 'status') return {ok:true, provider:null}; return {ok:false, error:'not_configured'}; },
+  subscribe() {}, unsubscribe() {}
+};
+const Remote = {
+  sb: null, ch: null,
+  init() { this.sb = window.supabase.createClient(CONFIG.url, CONFIG.key); },
+  async q(p) { const {data, error} = await p; if (error) throw error; return data; },
+  async loadAll() {
+    const sel = t => this.q(this.sb.from(t).select('*'));
+    const [contacts, assets, pm, work, emails, st] = await Promise.all([sel('fac_contacts'), sel('fac_assets'), sel('fac_pm'), sel('fac_work'),
+      this.q(this.sb.from('fac_emails').select('*').order('created_at', {ascending:false}).limit(300)).catch(() => []),
+      this.q(this.sb.from('fac_settings').select('data').eq('id', 'main').maybeSingle()).catch(() => null)]);
+    return {contacts, assets, pm, work, emails, settings: (st && st.data) || {}};
+  },
+  async upsert(kind, row) {
+    const r = {...row}; if (kind === 'work' && !r.num) delete r.num;
+    const data = await this.q(this.sb.from(TBL[kind]).upsert(r).select().single());
+    return data;
+  },
+  remove(kind, id) { return this.q(this.sb.from(TBL[kind]).delete().eq('id', id)); },
+  saveSettings(data) { return this.q(this.sb.from('fac_settings').upsert({id:'main', data, updated_at: nowIso()})); },
+  async upload(blob, path) {
+    const small = await shrink(blob, 1600);
+    const {error} = await this.sb.storage.from(CONFIG.bucket).upload(path, small, {contentType: small.type || 'image/jpeg', upsert: false});
+    if (error) throw error;
+    return {path, url: this.sb.storage.from(CONFIG.bucket).getPublicUrl(path).data.publicUrl};
+  },
+  async unupload(path) { if (path) await this.sb.storage.from(CONFIG.bucket).remove([path]).catch(() => {}); },
+  async fn(body) {
+    try {
+      const r = await fetch(`${CONFIG.url}/functions/v1/${CONFIG.fn}`, {method:'POST', headers:{'Content-Type':'application/json', apikey: CONFIG.fnKey, Authorization: 'Bearer ' + CONFIG.fnKey}, body: JSON.stringify(body)});
+      const j = await r.json().catch(() => ({ok:false, error:'Bad response (' + r.status + ')'}));
+      if (r.status === 404) return {ok:false, error:'not_configured'};
+      return j;
+    } catch (e) { return {ok:false, error:'Could not reach the email service'}; }
+  },
+  subscribe(cb) {
+    this.unsubscribe();
+    const ch = this.sb.channel('fac-' + Math.random().toString(36).slice(2, 7));
+    ['fac_work','fac_pm','fac_contacts','fac_assets'].forEach(t => ch.on('postgres_changes', {event:'*', schema:'public', table:t}, cb));
+    ch.subscribe(); this.ch = ch;
+  },
+  unsubscribe() { if (this.ch) { this.sb.removeChannel(this.ch); this.ch = null; } }
+};
+let B = Remote;
+
+/* ---------------- store ---------------- */
+function arr(kind) { return S[kind]; }
+async function save(kind, row, quiet) {
+  row.updated_at = nowIso(); if (!row.created_at) row.created_at = row.updated_at;
+  const a = arr(kind); const i = a.findIndex(r => r.id === row.id); if (i >= 0) a[i] = row; else a.push(row);
+  try { const saved = await B.upsert(kind, row); if (saved) { const j = a.findIndex(r => r.id === row.id); if (j >= 0) a[j] = saved; return saved; } return row; }
+  catch (e) { console.error(e); toast('Could not save: ' + (e.message || e), 'bad'); if (!quiet) reload(); throw e; }
+}
+async function del(kind, id) {
+  const a = arr(kind); const i = a.findIndex(r => r.id === id); if (i >= 0) a.splice(i, 1);
+  try { await B.remove(kind, id); } catch (e) { toast('Could not delete: ' + (e.message || e), 'bad'); reload(); }
+}
+async function saveSettings(patch) {
+  S.settings = {...S.settings, ...patch};
+  try { await B.saveSettings(S.settings); } catch (e) { toast('Could not save settings: ' + (e.message || e), 'bad'); }
+}
+async function reload() {
+  try { const d = await B.loadAll(); Object.assign(S, d); S.loaded = true; } catch (e) { console.error(e); toast('Could not load data: ' + (e.message || e), 'bad'); }
+  renderApp();
+}
+let rt = null; function remoteChanged() { clearTimeout(rt); rt = setTimeout(reload, 600); }
+
+/* ---------------- derived ---------------- */
+function pmState(p) {
+  if (!p.active) return {cls:'gray', txt:'Paused', rank:9};
+  if (!p.next_due) return {cls:'gray', txt:'No date', rank:8};
+  const d = daysFrom(p.next_due);
+  if (d < 0) return {cls:'bad', txt:`Overdue ${-d} day${d === -1 ? '' : 's'}`, rank:0, d};
+  if (d === 0) return {cls:'bad', txt:'Due today', rank:1, d};
+  if (d <= Math.max(7, p.remind_days || 7)) return {cls:'warn', txt:`Due in ${d} day${d === 1 ? '' : 's'}`, rank:2, d};
+  return {cls:'', txt:'Due ' + fmtD(p.next_due), rank:3, d};
+}
+const openPmWork = p => S.work.find(w => w.pm_id === p.id && isOpen(w));
+function workSort(a, b) {
+  const pr = {urgent:0, high:1, normal:2, low:3}; const st = {new:0, assigned:1, in_progress:1, on_hold:2, done:3, cancelled:4};
+  return (st[a.status] ?? 5) - (st[b.status] ?? 5) || (pr[a.priority] ?? 2) - (pr[b.priority] ?? 2) || String(a.due_date || '9999').localeCompare(String(b.due_date || '9999')) || (b.num || 0) - (a.num || 0);
+}
+function yearSpend(y) { y = String(y || new Date().getFullYear()); return S.work.reduce((a, w) => a + (w.costs || []).filter(c => String(c.date || '').startsWith(y)).reduce((s, c) => s + num(c.amount), 0), 0); }
+
+/* ---------------- shared bits ---------------- */
+const typeChip = t => { const x = TYPES[t] || TYPES.other; return `<span class="chip" style="background:${x.color}1f;color:${x.color}">${x.icon} ${x.name}</span>`; };
+const statusChip = s => `<span class="chip ${(STATUS[s] || {}).cls || ''}">${esc((STATUS[s] || {name:s}).name)}</span>`;
+const prioChip = p => p && p !== 'normal' ? `<span class="chip ${PRIORITY[p].cls}">${PRIORITY[p].name}</span>` : '';
+function dueChip(w) {
+  if (!w.due_date || !isOpen(w)) return '';
+  const d = daysFrom(w.due_date);
+  return `<span class="chip ${d < 0 ? 'bad' : d <= 3 ? 'warn' : 'gray'}">${d < 0 ? 'Overdue' : d === 0 ? 'Due today' : 'Due ' + fmtD(w.due_date)}</span>`;
+}
+function workItem(w) {
+  const ph = (w.photos || [])[0];
+  const meta = [statusChip(w.status), prioChip(w.priority), dueChip(w), w.location ? `<span>📍 ${esc(w.location)}</span>` : '', w.assignee_id ? `<span>👤 ${esc(cname(w.assignee_id))}</span>` : (isOpen(w) ? '<span style="color:var(--warn)">Unassigned</span>' : ''), w.source === 'public' ? '<span class="chip info">From form</span>' : ''].filter(Boolean).join('');
+  return `<div class="item" data-act="openWork" data-id="${w.id}"><div class="ic" style="background:${(TYPES[w.type] || TYPES.other).color}1a">${(TYPES[w.type] || TYPES.other).icon}</div>
+    <div class="main"><div class="t">#${w.num || '—'} · ${esc(w.title || 'Untitled')}</div><div class="s">${meta}</div></div>
+    ${ph ? `<img class="thumb" src="${esc(ph.url)}" alt="">` : ''}<div class="right tiny muted">${fmtD((w.created_at || '').slice(0, 10))}${spent(w) ? '<br>' + money(spent(w)) : ''}</div></div>`;
+}
+function pmItem(p) {
+  const st = pmState(p); const a = asset(p.asset_id); const ow = openPmWork(p);
+  return `<div class="item" data-act="openPm" data-id="${p.id}"><div class="ic" style="background:#9B51E01a">🗓️</div>
+    <div class="main"><div class="t">${esc(p.title)}</div><div class="s"><span class="chip ${st.cls}">${st.txt}</span><span>${every(p)}</span>${a ? `<span>⚙️ ${esc(a.name)}</span>` : p.location ? `<span>📍 ${esc(p.location)}</span>` : ''}${p.assignee_id ? `<span>👤 ${esc(cname(p.assignee_id))}</span>` : ''}${ow ? `<span class="chip info">Work order #${ow.num} open</span>` : ''}</div></div>
+    <div class="right">${ow ? `<button class="btn xs" data-act="openWork" data-id="${ow.id}">Open #${ow.num}</button>` : `<button class="btn xs" data-act="pmToWork" data-id="${p.id}">Create work order</button>`}<button class="btn xs ok" data-act="pmDone" data-id="${p.id}">Mark done</button></div></div>`;
+}
+function contactOptions(sel, blank = '— unassigned —') {
+  const groups = Object.entries(KINDS).map(([k, n]) => { const cs = S.contacts.filter(c => c.active !== false && (c.kind || 'volunteer') === k).sort((a, b) => a.name.localeCompare(b.name)); return cs.length ? `<optgroup label="${n}">${cs.map(c => `<option value="${c.id}" ${c.id === sel ? 'selected' : ''}>${esc(c.name)}${c.company ? ' — ' + esc(c.company) : ''}</option>`).join('')}</optgroup>` : ''; }).join('');
+  const gone = sel && !S.contacts.some(c => c.id === sel && c.active !== false) && cn(sel) ? `<option value="${sel}" selected>${esc(cn(sel).name)} (inactive)</option>` : '';
+  return `<option value="">${blank}</option>${gone}${groups}`;
+}
+const locList = () => `<datalist id="locs">${locations().map(l => `<option value="${esc(l)}">`).join('')}</datalist>`;
+const catList = () => `<datalist id="cats">${categories().map(l => `<option value="${esc(l)}">`).join('')}</datalist>`;
+
+/* ---------------- views ---------------- */
+function viewLogin(err='') {
+  return `<div class="center"><div class="card login stack">
+    <div class="brand" style="color:var(--navy)"><span class="logo">delc</span> FACILITIES</div>
+    <h1>Sign in</h1><div class="muted small">Use your DELC Apps account — the same username and password as the DELC Apps Hub.</div>
+    <label class="f">Username<input id="lu" autocomplete="username" autocapitalize="none" placeholder="ddetrich"></label>
+    <label class="f">Password<input id="lp" type="password" autocomplete="current-password"></label>
+    <div class="err" id="lerr">${esc(err || (!window.supabase ? 'Could not load the database library — check the internet connection.' : ''))}</div>
+    <button class="btn pri" data-act="login">Sign in</button>
+    <a class="link" href="?report">Just need to report a problem? Use the request form →</a>
+    <a class="link" href="${CONFIG.hubUrl}">Go to the DELC Apps Hub</a>
+    <button class="link" data-act="demo">Try it in offline demo mode (data stays on this device)</button>
+  </div></div>`;
+}
+function header() {
+  const nNew = S.work.filter(w => w.status === 'new').length; const nOver = S.pm.filter(p => p.active && p.next_due && daysFrom(p.next_due) < 0).length;
+  const tabs = [['dash','Dashboard'],['work','Work Orders', nNew],['pm','Maintenance', nOver],['projects','Projects'],['assets','Equipment'],['contacts','People'],['emails','Emails'],['settings','Settings']];
+  return `${S.backend === 'local' ? '<div class="demo-banner">Demo mode — data is saved on this device only. Emails can’t be sent in demo mode.</div>' : ''}
+  <header class="top"><div class="brand"><span class="logo">delc</span> FACILITIES</div><div class="spacer"></div>
+    <button class="tbtn" data-act="newWork" data-type="repair" style="background:var(--gold);border-color:var(--gold);color:var(--navy);font-weight:700">+ New</button>
+    <span class="small uname" style="opacity:.85">${esc(S.userName || S.user)}</span><a class="tbtn" href="${CONFIG.hubUrl}">Apps</a><button class="tbtn" data-act="logout">Sign out</button></header>
+  <nav class="tabs">${tabs.map(([k, l, n]) => `<button class="tab ${S.view === k ? 'on' : ''}" data-act="tab" data-v="${k}">${l}${n ? `<span class="n">${n}</span>` : ''}</button>`).join('')}</nav>`;
+}
+function viewDash() {
+  const open = S.work.filter(isOpen); const fresh = open.filter(w => w.status === 'new');
+  const pmA = S.pm.filter(p => p.active && p.next_due); const over = pmA.filter(p => daysFrom(p.next_due) < 0); const soon = pmA.filter(p => { const d = daysFrom(p.next_due); return d >= 0 && d <= 30; });
+  const projs = S.work.filter(w => w.type === 'project' && isOpen(w));
+  const attention = open.filter(w => w.status === 'new' || w.priority === 'urgent' || (w.due_date && daysFrom(w.due_date) < 0) || !w.assignee_id).sort(workSort).slice(0, 8);
+  const upcoming = pmA.filter(p => daysFrom(p.next_due) <= 30).sort((a, b) => a.next_due.localeCompare(b.next_due)).slice(0, 8);
+  const y = new Date().getFullYear();
+  return `<div class="page">
+    ${S.emailCfg === null && S.backend === 'remote' ? `<div class="notice" style="margin-bottom:14px">Automatic emails aren’t switched on yet — until then, “Email” buttons open the message in your email program. <a href="#" data-act="tab" data-v="settings">How to switch them on</a></div>` : ''}
+    <div class="stats">
+      <button class="stat ${fresh.length ? 'alert' : ''}" data-act="goWork" data-s="new"><b>${fresh.length}</b><span>new — to review &amp; assign</span></button>
+      <button class="stat" data-act="goWork" data-s="open"><b>${open.length}</b><span>open work orders</span></button>
+      <button class="stat ${over.length ? 'alert' : ''}" data-act="tab" data-v="pm"><b>${over.length}</b><span>maintenance overdue</span></button>
+      <button class="stat" data-act="tab" data-v="pm"><b>${soon.length}</b><span>due in next 30 days</span></button>
+      <button class="stat" data-act="tab" data-v="projects"><b>${projs.length}</b><span>active projects</span></button>
+      <div class="stat" style="cursor:default"><b>${money(yearSpend(y))}</b><span>spent in ${y}</span></div>
+    </div>
+    <div class="dash">
+      <div class="card"><div class="row between" style="margin-bottom:10px"><h3 style="margin:0">Needs attention</h3><div class="row"><button class="btn sm" data-act="newWork" data-type="janitorial">🧹 Janitorial</button><button class="btn sm" data-act="newWork" data-type="repair">🔧 Repair</button></div></div>
+        <div class="list">${attention.map(workItem).join('') || '<div class="empty">Nothing needs attention right now. 🎉</div>'}</div></div>
+      <div class="stack">
+        <div class="card"><div class="row between" style="margin-bottom:10px"><h3 style="margin:0">Maintenance coming up</h3><button class="btn sm" data-act="tab" data-v="pm">All</button></div>
+          <div class="list">${upcoming.map(p => { const st = pmState(p); return `<div class="item" data-act="openPm" data-id="${p.id}"><div class="main"><div class="t">${esc(p.title)}</div><div class="s"><span class="chip ${st.cls}">${st.txt}</span>${p.assignee_id ? `<span>👤 ${esc(cname(p.assignee_id))}</span>` : ''}</div></div></div>`; }).join('') || '<div class="empty">Nothing due in the next 30 days.</div>'}</div></div>
+        <div class="card"><div class="row between" style="margin-bottom:10px"><h3 style="margin:0">Building projects</h3><button class="btn sm" data-act="newWork" data-type="project">+ Project</button></div>
+          <div class="list">${projs.map(w => { const sp = spent(w), bu = num(w.budget); return `<div class="item" data-act="openWork" data-id="${w.id}"><div class="main"><div class="t">${esc(w.title)}</div><div class="s">${statusChip(w.status)}<span>${money(sp)}${bu ? ' of ' + money(bu) : ''}</span></div>${bu ? `<div class="bar ${sp > bu ? 'over' : ''}" style="margin-top:6px"><i style="width:${Math.min(100, sp / bu * 100)}%"></i></div>` : ''}</div></div>`; }).join('') || '<div class="empty">No active projects.</div>'}</div></div>
+      </div>
+    </div></div>`;
+}
+function viewWork() {
+  const q = S.q.trim().toLowerCase();
+  let list = S.work.filter(w => w.type !== 'project' || S.wtype === 'project');
+  if (S.wtype !== 'open' && S.wtype !== 'all') list = S.work.filter(w => w.type === S.wtype);
+  if (S.wstat === 'open') list = list.filter(isOpen); else if (S.wstat !== 'all') list = list.filter(w => w.status === S.wstat);
+  if (q) list = list.filter(w => [w.num, w.title, w.description, w.location, w.requested_by, cname(w.assignee_id)].join(' ').toLowerCase().includes(q));
+  list.sort(workSort);
+  const tb = [['all','All types'],['janitorial','🧹 Janitorial'],['repair','🔧 Repair'],['pm','🗓️ Preventive'],['other','📋 Other']];
+  const sb = [['open','Open'],['new','New'],['in_progress','In progress'],['on_hold','On hold'],['done','Done'],['all','All']];
+  return `<div class="page">
+    <div class="toolbar"><div class="seg">${tb.map(([k, l]) => `<button class="${(S.wtype === k || (k === 'all' && S.wtype === 'open')) ? 'on' : ''}" data-act="wtype" data-v="${k}">${l}</button>`).join('')}</div>
+      <div class="seg">${sb.map(([k, l]) => `<button class="${S.wstat === k ? 'on' : ''}" data-act="wstat" data-v="${k}">${l}</button>`).join('')}</div>
+      <input class="inp" type="search" placeholder="Search # , title, place, person…" value="${esc(S.q)}" data-inp="q" id="wq" autocomplete="off">
+      <button class="btn gold" data-act="newWork" data-type="${['janitorial','repair','pm','other'].includes(S.wtype) ? S.wtype : 'repair'}">+ New work order</button></div>
+    <div class="list">${list.map(workItem).join('') || `<div class="card empty">No work orders here.${S.wstat === 'open' ? ' Tap <b>+ New work order</b>, or share the public request form from Settings.' : ''}</div>`}</div>
+    <div class="small muted" style="margin-top:10px">${list.length} shown · Building projects are on the Projects tab.</div></div>`;
+}
+function viewPm() {
+  const list = S.pm.slice().sort((a, b) => pmState(a).rank - pmState(b).rank || String(a.next_due || '9').localeCompare(String(b.next_due || '9')));
+  return `<div class="page">
+    <div class="toolbar"><div class="small muted" style="flex:1">Recurring jobs like filter changes and inspections. When one is marked done, the next due date is set automatically${S.emailCfg ? ' and reminders go out by email before it’s due' : ''}.</div>
+      <button class="btn gold" data-act="newPm">+ New schedule</button></div>
+    <div class="list">${list.map(pmItem).join('') || `<div class="card empty">No maintenance schedules yet. Some ideas: HVAC filters (every 3 months), fire extinguisher inspection (yearly), gutters (every 6 months), smoke detector batteries (yearly).
+      <div style="margin-top:12px"><button class="btn" data-act="seedPm">Add these 6 starter schedules</button></div></div>`}</div></div>`;
+}
+function viewProjects() {
+  const ps = S.work.filter(w => w.type === 'project').sort(workSort);
+  return `<div class="page">
+    <div class="toolbar"><div class="small muted" style="flex:1">Bigger jobs like painting a room, new carpet or roof work — with a budget, costs and before/after photos.</div><button class="btn gold" data-act="newWork" data-type="project">+ New project</button></div>
+    <div class="pcards">${ps.map(w => { const sp = spent(w), bu = num(w.budget); const ph = (w.photos || []).find(p => p.tag === 'after') || (w.photos || [])[0];
+      return `<div class="pcard" data-act="openWork" data-id="${w.id}"><div class="ph" style="${ph ? `background-image:url('${esc(ph.url)}')` : ''}">${ph ? '' : '🎨'}</div><div class="bd">
+        <div class="row between"><b>${esc(w.title)}</b>${statusChip(w.status)}</div>
+        <div class="small muted">${w.location ? '📍 ' + esc(w.location) + ' · ' : ''}${w.due_date ? 'Target ' + fmtD(w.due_date) : 'No target date'}${w.assignee_id ? ' · 👤 ' + esc(cname(w.assignee_id)) : ''}</div>
+        <div class="row between small"><span>Spent <b>${money(sp)}</b></span><span>${bu ? 'Budget ' + money(bu) : 'No budget set'}</span></div>
+        ${bu ? `<div class="bar ${sp > bu ? 'over' : ''}"><i style="width:${Math.min(100, sp / bu * 100)}%"></i></div>` : ''}
+        <div class="tiny muted">${(w.photos || []).length} photo${(w.photos || []).length === 1 ? '' : 's'} · ${(w.checklist || []).filter(c => c.done).length}/${(w.checklist || []).length} steps done</div></div></div>`; }).join('') || '<div class="card empty" style="grid-column:1/-1">No projects yet.</div>'}</div></div>`;
+}
+function viewAssets() {
+  const q = S.q.trim().toLowerCase();
+  const list = S.assets.filter(a => !q || [a.name, a.category, a.location, a.make, a.model, a.serial].join(' ').toLowerCase().includes(q)).sort((a, b) => (a.category || '').localeCompare(b.category || '') || a.name.localeCompare(b.name));
+  return `<div class="page">
+    <div class="toolbar"><input class="inp" type="search" placeholder="Search equipment…" value="${esc(S.q)}" data-inp="q" id="aq" autocomplete="off"><button class="btn gold" data-act="newAsset">+ Add equipment</button></div>
+    <div class="list">${list.map(a => { const hist = S.work.filter(w => w.asset_id === a.id); const pms = S.pm.filter(p => p.asset_id === a.id); const ph = (a.photos || [])[0]; const warr = a.warranty_until ? daysFrom(a.warranty_until) : null;
+      return `<div class="item" data-act="openAsset" data-id="${a.id}">${ph ? `<img class="thumb" src="${esc(ph.url)}" alt="">` : '<div class="ic">⚙️</div>'}<div class="main"><div class="t">${esc(a.name)}</div>
+        <div class="s">${a.category ? `<span class="chip">${esc(a.category)}</span>` : ''}${a.location ? `<span>📍 ${esc(a.location)}</span>` : ''}${a.make || a.model ? `<span>${esc([a.make, a.model].filter(Boolean).join(' '))}</span>` : ''}${warr != null ? `<span class="chip ${warr < 0 ? 'gray' : warr < 90 ? 'warn' : 'ok'}">${warr < 0 ? 'Warranty ended' : 'Warranty to ' + fmtD(a.warranty_until)}</span>` : ''}</div></div>
+        <div class="right tiny muted">${pms.length} schedule${pms.length === 1 ? '' : 's'}<br>${hist.length} job${hist.length === 1 ? '' : 's'} · ${money(hist.reduce((s, w) => s + spent(w), 0))}</div></div>`; }).join('') || '<div class="card empty">No equipment yet. Add your furnaces, water heaters, fridges, AC units — with model and serial numbers, photos of the label, and service history.</div>'}</div></div>`;
+}
+function viewContacts() {
+  const list = S.contacts.slice().sort((a, b) => (a.active === false) - (b.active === false) || (a.kind || '').localeCompare(b.kind || '') || a.name.localeCompare(b.name));
+  return `<div class="page">
+    <div class="toolbar"><div class="small muted" style="flex:1">The people jobs get assigned to and emailed: staff, volunteers, the property committee and outside contractors.</div><button class="btn" data-act="composeGeneral">✉️ Email people</button><button class="btn gold" data-act="newContact">+ Add person</button></div>
+    <div class="list">${list.map(c => { const open = S.work.filter(w => w.assignee_id === c.id && isOpen(w)).length;
+      return `<div class="item" data-act="openContact" data-id="${c.id}" style="${c.active === false ? 'opacity:.55' : ''}"><div class="ic">${c.kind === 'contractor' ? '🧰' : c.kind === 'staff' ? '🪪' : c.kind === 'committee' ? '🏛️' : '🙋'}</div><div class="main"><div class="t">${esc(c.name)}${c.company ? ` <span class="muted" style="font-weight:500">· ${esc(c.company)}</span>` : ''}</div>
+        <div class="s"><span class="chip">${KINDS[c.kind] || 'Volunteer'}</span>${c.email ? `<span>✉️ ${esc(c.email)}</span>` : '<span style="color:var(--warn)">No email</span>'}${c.phone ? `<span>📞 ${esc(c.phone)}</span>` : ''}${c.active === false ? '<span class="chip gray">Inactive</span>' : ''}</div></div>
+        <div class="right tiny muted">${open} open job${open === 1 ? '' : 's'}</div></div>`; }).join('') || '<div class="card empty">No one yet. Add your custodian, property committee members and the contractors you call (HVAC, plumber, electrician).</div>'}</div></div>`;
+}
+function viewEmails() {
+  const cls = {sent:'ok', failed:'bad', blocked:'warn'};
+  return `<div class="page">
+    ${emailSetupCard(true)}
+    <div class="tablewrap" style="margin-top:14px"><table class="tb"><thead><tr><th>When</th><th>Type</th><th>To</th><th>Subject</th><th>Result</th></tr></thead><tbody>
+    ${S.emails.map(e => `<tr><td class="small" style="white-space:nowrap">${fmtDT(e.created_at)}</td><td class="small">${esc({message:'Message', assigned:'Assignment', new_request:'New request', reminder:'Reminder', requester_update:'Requester update'}[e.kind] || e.kind || '')}</td>
+      <td class="small">${esc(e.to_list)}</td><td>${esc(e.subject)}${e.sent_by ? `<div class="tiny muted">by ${esc(e.sent_by)}</div>` : ''}</td><td><span class="chip ${cls[e.status] || ''}">${esc(e.status)}</span>${e.error ? `<div class="tiny" style="color:var(--bad)">${esc(e.error)}</div>` : ''}</td></tr>`).join('') || '<tr><td colspan="5" class="empty">No emails sent yet.</td></tr>'}
+    </tbody></table></div></div>`;
+}
+function emailSetupCard(compact) {
+  if (S.backend === 'local') return '<div class="notice info">Demo mode can’t send emails. “Email” buttons open the message in your email program instead.</div>';
+  if (S.emailCfg === undefined) return '<div class="notice info">Checking email setup…</div>';
+  if (S.emailCfg) return `<div class="notice info">✅ Automatic email is on — sending ${S.emailCfg.provider === 'microsoft' ? 'through Microsoft 365' : 'through Resend'}${S.emailCfg.from ? ' as <b>' + esc(S.emailCfg.from) + '</b>' : ''}.</div>`;
+  return `<div class="notice"><b>Automatic email isn’t switched on yet.</b> Until it is, every “Email” button opens the message in your own email program so you can still send it.${compact ? ' See Settings → Email for how to switch it on.' : ''}</div>`;
+}
+function viewSettings() {
+  const link = location.origin + location.pathname + '?report';
+  const st = S.settings;
+  return `<div class="page"><div class="dash">
+    <div class="stack">
+      <div class="card"><h3>Public request form</h3><div class="small muted" style="margin-bottom:8px">Anyone can report a problem with this link — no login needed. Put it in the bulletin or newsletter, or post a sign with it.</div>
+        <div class="row"><input class="inp" readonly value="${esc(link)}" id="publink" style="flex:1"><button class="btn" data-act="copyLink">Copy</button><a class="btn" href="?report" target="_blank">Open</a></div></div>
+      <div class="card"><h3>Outside requests</h3><div class="notice info" style="margin-bottom:10px">📥 Every request from the public form is emailed to <b>${esc((S.emailCfg && S.emailCfg.intake) || CONFIG.intake)}</b> for ${esc(CONFIG.intakeWho)} to review and assign${S.emailCfg ? '' : ' — once automatic email is switched on. Until then, new requests show on the Dashboard'}.</div>
+        <div class="small muted" style="margin-bottom:8px">Also copy these people on new outside requests (optional). They’re copied on maintenance reminders too.</div>
+        <div class="rcpt">${S.contacts.filter(c => c.active !== false).map(c => `<label><input type="checkbox" data-chg="notify" value="${c.id}" ${(st.notifyIds || []).includes(c.id) ? 'checked' : ''} ${c.email ? '' : 'disabled'}><span>${esc(c.name)}<br><span class="tiny muted">${esc(c.email || 'no email')}</span></span></label>`).join('') || '<div class="small muted">Add people on the People tab first.</div>'}</div></div>
+      <div class="card"><h3>Automatic emails</h3><div class="stack">
+        <label class="chk"><input type="checkbox" data-chg="setflag" data-k="autoAssign" ${st.autoAssign !== false ? 'checked' : ''}> Email a person when a job is assigned to them</label>
+        <label class="chk"><input type="checkbox" data-chg="setflag" data-k="autoReminders" ${st.autoReminders !== false ? 'checked' : ''}> Send maintenance reminders before they’re due (checked every morning)</label>
+        <label class="chk"><input type="checkbox" data-chg="setflag" data-k="autoRequester" ${st.autoRequester !== false ? 'checked' : ''}> Let the person who used the public form know when their request is done</label></div></div>
+      <div class="card"><h3>Email</h3>${emailSetupCard(false)}
+        <div class="small" style="margin-top:10px;line-height:1.55">Emails come from the <b>fac-send-email</b> service in the DELC database. To switch it on, add one of these in Supabase → Edge Functions → Secrets:
+        <ul style="margin:6px 0 0 18px;padding:0"><li><b>Microsoft 365</b> (sends from a real mydelc.org mailbox): <code>MS_TENANT_ID</code>, <code>MS_CLIENT_ID</code>, <code>MS_CLIENT_SECRET</code>, <code>MS_SENDER</code> — needs an app registration with Mail.Send permission.</li>
+        <li><b>Resend</b> (free up to 3,000/month): <code>RESEND_API_KEY</code> and <code>FAC_FROM</code> (e.g. DELC Facilities &lt;facilities@mydelc.org&gt;) — needs mydelc.org verified in Resend.</li></ul>
+        For safety, the service only emails people on the People list (and form submitters, with a fixed thank-you note), and sends at most 60 an hour.</div>
+        <div class="row" style="margin-top:10px"><button class="btn sm" data-act="checkEmail">Check again</button></div></div>
+    </div>
+    <div class="stack">
+      <div class="card"><h3>Places in the building</h3><div class="small muted" style="margin-bottom:8px">Used for “Where?” on requests. One per line.</div>
+        <textarea class="inp" id="set_locs" rows="9">${esc(locations().join('\n'))}</textarea>
+        <div class="row" style="margin-top:8px"><button class="btn pri sm" data-act="saveLists">Save places &amp; categories</button></div></div>
+      <div class="card"><h3>Equipment &amp; maintenance categories</h3><textarea class="inp" id="set_cats" rows="6">${esc(categories().join('\n'))}</textarea></div>
+      <div class="card"><h3>Backup</h3><div class="stack"><button class="btn" data-act="exportJson">Download backup (JSON)</button>
+        <button class="btn" data-act="importJson">Restore from a backup</button><input type="file" id="jsonFile" accept=".json,application/json" class="hidden">
+        <div class="tiny muted">Photos stay in storage; the backup keeps their links.</div></div></div>
+    </div></div></div>`;
+}
+
+/* ---------------- photo widget ---------------- */
+function photoWidget(row, tags) {
+  const ps = row.photos || [];
+  return `<div class="photos">${ps.map((p, i) => `<div class="photo">${p.tag ? `<span class="tag">${esc(p.tag)}</span>` : ''}<img src="${esc(p.url)}" alt="" data-act="zoom" data-i="${i}"><button class="del" data-act="delPhoto" data-i="${i}" title="Remove">✕</button>
+      ${tags ? `<div class="cap"><select data-chg="photoTag" data-i="${i}"><option value="">tag…</option>${['before','during','after'].map(t => `<option ${p.tag === t ? 'selected' : ''}>${t}</option>`).join('')}</select></div>` : `<div class="cap tiny muted">${esc(fmtD((p.at || '').slice(0, 10)))}</div>`}</div>`).join('')}
+    <label class="addphoto">📷<span>Add photos</span><input type="file" accept="image/*" multiple class="hidden" data-chg="addPhotos"></label></div>`;
+}
+
+/* ---------------- modals ---------------- */
+function mWork(w) {
+  const isNew = !wo(w.id); const t = TYPES[w.type] || TYPES.other; const proj = w.type === 'project';
+  const sp = spent(w), bu = num(w.budget); const a = asset(w.asset_id); const p = pmOf(w.pm_id);
+  const ck = w.checklist || [];
+  return `<div class="mhead"><div><h2>${t.icon} ${isNew ? 'New ' + t.name.toLowerCase() + (proj ? '' : ' request') : '#' + (w.num || '') + ' · ' + esc(w.title)}</h2>
+      <div class="small muted" style="margin-top:3px">${isNew ? 'Fill in what you know — you can add photos and more later.' : `${typeChip(w.type)} ${statusChip(w.status)} ${w.source === 'public' ? '<span class="chip info">From public form</span>' : ''} · opened ${fmtDT(w.created_at)}${w.done_at ? ' · done ' + fmtDT(w.done_at) : ''}`}</div></div><button class="x" data-act="closeModal">×</button></div>
+  ${locList()}
+  ${!isNew && w.source === 'public' && w.status === 'new' ? `<div class="notice" style="margin-bottom:12px">📥 <b>Outside request waiting for review.</b> Check the details, pick who it’s <b>Assigned to</b>, and Save${S.settings.autoAssign !== false ? ' — they’ll get an email with the job' : ''}.</div>` : ''}
+  <div class="mgrid"><div class="stack">
+    <label class="f">${proj ? 'Project' : 'What needs doing?'}<input data-f="title" value="${esc(w.title || '')}" placeholder="${proj ? 'e.g. Paint the Social Hall' : w.type === 'janitorial' ? 'e.g. Clean up spill in the narthex' : 'e.g. Men’s room sink is leaking'}"></label>
+    <div class="grid2"><label class="f">Type<select data-f="type">${Object.entries(TYPES).map(([k, x]) => `<option value="${k}" ${w.type === k ? 'selected' : ''}>${x.icon} ${x.name}</option>`).join('')}</select></label>
+      <label class="f">Where?<input data-f="location" list="locs" value="${esc(w.location || '')}" placeholder="Pick or type"></label></div>
+    <label class="f">Details<textarea data-f="description" rows="4" placeholder="What’s wrong, what you’d like done…">${esc(w.description || '')}</textarea></label>
+    <div class="grid2"><label class="f">Status<select data-f="status">${Object.entries(STATUS).map(([k, x]) => `<option value="${k}" ${w.status === k ? 'selected' : ''}>${x.name}</option>`).join('')}</select></label>
+      <label class="f">Priority<select data-f="priority">${Object.entries(PRIORITY).map(([k, x]) => `<option value="${k}" ${(w.priority || 'normal') === k ? 'selected' : ''}>${x.name}</option>`).join('')}</select></label></div>
+    <div class="grid2"><label class="f">Assigned to<select data-f="assignee_id">${contactOptions(w.assignee_id)}</select></label>
+      <label class="f">${proj ? 'Target date' : 'Due'}<input type="date" data-f="due_date" value="${esc(w.due_date || '')}"></label></div>
+    ${proj ? `<label class="f">Budget<input type="number" min="0" step="0.01" data-f="budget" data-t="num" value="${bu || ''}" placeholder="0.00"></label>` : ''}
+    <label class="f">Equipment (optional)<select data-f="asset_id"><option value="">—</option>${S.assets.slice().sort((x, y) => x.name.localeCompare(y.name)).map(x => `<option value="${x.id}" ${x.id === w.asset_id ? 'selected' : ''}>${esc(x.name)}${x.location ? ' — ' + esc(x.location) : ''}</option>`).join('')}</select></label>
+    ${p ? `<div class="small muted">🗓️ From maintenance schedule <a href="#" data-act="openPm" data-id="${p.id}">${esc(p.title)}</a> (${every(p).toLowerCase()}). Marking this done sets the next due date.</div>` : ''}
+    <div class="box"><div class="sectitle">Requested by</div><div class="grid3"><input class="inp" data-f="requested_by" value="${esc(w.requested_by || '')}" placeholder="Name"><input class="inp" data-f="requester_phone" value="${esc(w.requester_phone || '')}" placeholder="Phone"><input class="inp" type="email" data-f="requester_email" value="${esc(w.requester_email || '')}" placeholder="Email"></div></div>
+  </div><div class="stack">
+    <div><div class="sectitle">Photos (${(w.photos || []).length})</div>${photoWidget(w, proj)}</div>
+    <div class="box"><div class="row between"><div class="sectitle" style="margin:0">Checklist ${ck.length ? `(${ck.filter(c => c.done).length}/${ck.length})` : ''}</div></div>
+      ${ck.map((c, i) => `<div class="ck ${c.done ? 'done' : ''}"><input type="checkbox" data-chg="ckTick" data-i="${i}" ${c.done ? 'checked' : ''}><span>${esc(c.text)}</span><button class="rm" data-act="ckDel" data-i="${i}">✕</button></div>`).join('')}
+      <div class="row" style="margin-top:6px"><input class="inp" id="ck_new" placeholder="Add a step…" style="flex:1"><button class="btn sm" data-act="ckAdd">Add</button></div></div>
+    <div class="box"><div class="row between"><div class="sectitle" style="margin:0">Costs</div><b>${money(sp)}${bu ? ` <span class="small muted">of ${money(bu)}</span>` : ''}</b></div>
+      ${bu ? `<div class="bar ${sp > bu ? 'over' : ''}" style="margin:6px 0"><i style="width:${Math.min(100, sp / bu * 100)}%"></i></div>` : ''}
+      ${(w.costs || []).map((c, i) => `<div class="ck"><span>${esc(c.desc || 'Cost')}${c.vendor ? ` <span class="tiny muted">· ${esc(c.vendor)}</span>` : ''} <span class="tiny muted">${fmtD(c.date)}</span></span><b>${money(c.amount)}</b><button class="rm" data-act="costDel" data-i="${i}">✕</button></div>`).join('')}
+      <div class="grid2" style="margin-top:6px"><input class="inp" id="cost_desc" placeholder="What (paint, parts, labor)"><input class="inp" id="cost_vendor" placeholder="Paid to (optional)"></div>
+      <div class="row" style="margin-top:6px"><input class="inp" id="cost_amt" type="number" step="0.01" min="0" placeholder="Amount" style="flex:1"><input class="inp" id="cost_date" type="date" value="${today()}" style="flex:1"><button class="btn sm" data-act="costAdd">Add</button></div></div>
+    <div class="box"><div class="sectitle">Notes &amp; history</div>
+      <div class="row"><input class="inp" id="log_new" placeholder="Add a note…" style="flex:1"><button class="btn sm" data-act="logAdd">Add</button></div>
+      ${(w.log || []).slice().reverse().map(l => `<div class="logline"><b>${esc(l.by || '')}</b> <span class="tiny muted">${fmtDT(l.at)}</span><br>${esc(l.text)}</div>`).join('')}</div>
+  </div></div>
+  <div class="mfoot">
+    ${isNew ? '' : `<button class="btn bad sm" data-act="delWork">Delete</button><button class="btn sm" data-act="printWork">Print</button>`}
+    ${isNew ? '' : `<button class="btn sm" data-act="composeWork">✉️ Email…</button>`}
+    ${!isNew && w.requester_email ? `<button class="btn sm" data-act="requesterUpdate">✉️ Update requester</button>` : ''}
+    <span class="spacer"></span>
+    ${!isNew && isOpen(w) ? `<button class="btn ok" data-act="saveWork" data-done="1">✓ Mark done</button>` : ''}
+    <button class="btn pri" data-act="saveWork">${isNew ? 'Create' : 'Save'}</button></div>`;
+}
+function mPm(p) {
+  const isNew = !pmOf(p.id); const hist = S.work.filter(w => w.pm_id === p.id).sort((a, b) => String(b.done_at || b.created_at).localeCompare(String(a.done_at || a.created_at)));
+  const ck = p.checklist || [];
+  return `<div class="mhead"><div><h2>🗓️ ${isNew ? 'New maintenance schedule' : esc(p.title)}</h2>${isNew ? '' : `<div class="small muted" style="margin-top:3px"><span class="chip ${pmState(p).cls}">${pmState(p).txt}</span> · ${every(p)}${p.last_done ? ' · last done ' + fmtD(p.last_done) : ''}</div>`}</div><button class="x" data-act="closeModal">×</button></div>
+  ${locList()}${catList()}
+  <div class="mgrid"><div class="stack">
+    <label class="f">Task<input data-f="title" value="${esc(p.title || '')}" placeholder="e.g. Replace furnace filters"></label>
+    <div class="grid2"><label class="f">Category<input data-f="category" list="cats" value="${esc(p.category || '')}"></label><label class="f">Where?<input data-f="location" list="locs" value="${esc(p.location || '')}"></label></div>
+    <label class="f">Equipment (optional)<select data-f="asset_id"><option value="">—</option>${S.assets.map(x => `<option value="${x.id}" ${x.id === p.asset_id ? 'selected' : ''}>${esc(x.name)}</option>`).join('')}</select></label>
+    <div class="grid3"><label class="f">Repeat every<input type="number" min="1" max="60" data-f="every_n" data-t="int" value="${p.every_n || 1}"></label>
+      <label class="f">&nbsp;<select data-f="every_unit">${Object.keys(UNITS).map(u => `<option value="${u}" ${p.every_unit === u ? 'selected' : ''}>${u}(s)</option>`).join('')}</select></label>
+      <label class="f">Next due<input type="date" data-f="next_due" value="${esc(p.next_due || '')}"></label></div>
+    <div class="grid2"><label class="f">Usually done by<select data-f="assignee_id">${contactOptions(p.assignee_id, '— nobody yet —')}</select></label>
+      <label class="f">Remind (days before)<input type="number" min="0" max="90" data-f="remind_days" data-t="int" value="${p.remind_days ?? 7}"></label></div>
+    <div class="grid2"><label class="f">Typical cost<input type="number" min="0" step="0.01" data-f="est_cost" data-t="num" value="${p.est_cost || ''}"></label>
+      <label class="chk" style="align-self:end;padding-bottom:10px"><input type="checkbox" data-f="active" data-t="bool" ${p.active !== false ? 'checked' : ''}> Active</label></div>
+    <label class="f">Notes / instructions<textarea data-f="notes" rows="3" placeholder="Filter size 16x25x1, stored in the boiler room…">${esc(p.notes || '')}</textarea></label>
+  </div><div class="stack">
+    <div class="box"><div class="sectitle">Checklist (copied onto each work order)</div>
+      ${ck.map((c, i) => `<div class="ck"><span>${i + 1}. ${esc(c.text)}</span><button class="rm" data-act="ckDel" data-i="${i}">✕</button></div>`).join('') || '<div class="small muted">No steps yet.</div>'}
+      <div class="row" style="margin-top:6px"><input class="inp" id="ck_new" placeholder="Add a step…" style="flex:1"><button class="btn sm" data-act="ckAdd">Add</button></div></div>
+    ${isNew ? '' : `<div class="box"><div class="sectitle">History (${hist.length})</div>${hist.map(w => `<div class="ck" style="cursor:pointer" data-act="openWork" data-id="${w.id}"><span>#${w.num} · ${w.status === 'done' ? 'Done ' + fmtD((w.done_at || '').slice(0, 10)) : (STATUS[w.status] || {}).name}${w.assignee_id ? ' · ' + esc(cname(w.assignee_id)) : ''}</span><b>${spent(w) ? money(spent(w)) : ''}</b></div>`).join('') || '<div class="small muted">Not done yet.</div>'}
+      <div class="tiny muted" style="margin-top:6px">Total spent: ${money(hist.reduce((s, w) => s + spent(w), 0))}</div></div>`}
+  </div></div>
+  <div class="mfoot">${isNew ? '' : `<button class="btn bad sm" data-act="delPm">Delete</button>${openPmWork(p) ? '' : `<button class="btn sm" data-act="pmToWork" data-id="${p.id}">Create work order</button>`}<button class="btn sm ok" data-act="pmDone" data-id="${p.id}">Mark done</button>`}<span class="spacer"></span><button class="btn pri" data-act="savePm">${isNew ? 'Create' : 'Save'}</button></div>`;
+}
+function mPmDone(p) {
+  return `<div class="mhead"><div><h2>Mark done: ${esc(p.title)}</h2><div class="small muted">This is saved in the history and the next due date moves ahead ${every(p).toLowerCase()}.</div></div><button class="x" data-act="closeModal">×</button></div>
+  <div class="stack"><div class="grid2"><label class="f">Done on<input type="date" id="pd_date" value="${today()}"></label><label class="f">Done by<select id="pd_who">${contactOptions(p.assignee_id, '—')}</select></label></div>
+    <div class="grid2"><label class="f">Cost<input type="number" step="0.01" min="0" id="pd_cost" value="${p.est_cost || ''}" placeholder="0.00"></label><label class="f">Next due will be<input id="pd_next" readonly value="${fmtD(addInterval(today(), p.every_n, p.every_unit))}"></label></div>
+    <label class="f">Notes<textarea id="pd_notes" rows="2" placeholder="Anything worth remembering for next time"></textarea></label>
+    <div class="row" style="justify-content:flex-end"><button class="btn" data-act="closeModal">Cancel</button><button class="btn ok" data-act="pmDoneSave" data-id="${p.id}">✓ Mark done</button></div></div>`;
+}
+function mAsset(a) {
+  const isNew = !asset(a.id); const pms = S.pm.filter(p => p.asset_id === a.id); const hist = S.work.filter(w => w.asset_id === a.id).sort(workSort);
+  return `<div class="mhead"><div><h2>⚙️ ${isNew ? 'Add equipment' : esc(a.name)}</h2></div><button class="x" data-act="closeModal">×</button></div>
+  ${locList()}${catList()}
+  <div class="mgrid"><div class="stack">
+    <label class="f">Name<input data-f="name" value="${esc(a.name || '')}" placeholder="e.g. Furnace #2 (Social Hall)"></label>
+    <div class="grid2"><label class="f">Category<input data-f="category" list="cats" value="${esc(a.category || '')}"></label><label class="f">Where?<input data-f="location" list="locs" value="${esc(a.location || '')}"></label></div>
+    <div class="grid3"><label class="f">Make<input data-f="make" value="${esc(a.make || '')}"></label><label class="f">Model<input data-f="model" value="${esc(a.model || '')}"></label><label class="f">Serial #<input data-f="serial" value="${esc(a.serial || '')}"></label></div>
+    <div class="grid2"><label class="f">Installed<input type="date" data-f="installed" value="${esc(a.installed || '')}"></label><label class="f">Warranty until<input type="date" data-f="warranty_until" value="${esc(a.warranty_until || '')}"></label></div>
+    <label class="f">Notes<textarea data-f="notes" rows="3" placeholder="Filter size, service company, shut-off location…">${esc(a.notes || '')}</textarea></label>
+  </div><div class="stack">
+    <div><div class="sectitle">Photos — tip: snap the data plate / label</div>${photoWidget(a, false)}</div>
+    ${isNew ? '' : `<div class="box"><div class="row between"><div class="sectitle" style="margin:0">Maintenance schedules</div><button class="btn xs" data-act="newPm" data-asset="${a.id}">+ Schedule</button></div>${pms.map(p => `<div class="ck" style="cursor:pointer" data-act="openPm" data-id="${p.id}"><span>${esc(p.title)} · ${every(p).toLowerCase()}</span><span class="chip ${pmState(p).cls}">${pmState(p).txt}</span></div>`).join('') || '<div class="small muted">None yet.</div>'}</div>
+    <div class="box"><div class="row between"><div class="sectitle" style="margin:0">Service history</div><button class="btn xs" data-act="newWork" data-type="repair" data-asset="${a.id}">+ Repair</button></div>${hist.map(w => `<div class="ck" style="cursor:pointer" data-act="openWork" data-id="${w.id}"><span>#${w.num} ${esc(w.title)} <span class="tiny muted">${fmtD((w.done_at || w.created_at || '').slice(0, 10))}</span></span>${statusChip(w.status)}<b>${spent(w) ? money(spent(w)) : ''}</b></div>`).join('') || '<div class="small muted">No jobs yet.</div>'}
+      <div class="tiny muted" style="margin-top:6px">Total spent: ${money(hist.reduce((s, w) => s + spent(w), 0))}</div></div>`}
+  </div></div>
+  <div class="mfoot">${isNew ? '' : '<button class="btn bad sm" data-act="delAsset">Delete</button>'}<span class="spacer"></span><button class="btn pri" data-act="saveAsset">${isNew ? 'Add' : 'Save'}</button></div>`;
+}
+function mContact(c) {
+  const isNew = !cn(c.id); const jobs = S.work.filter(w => w.assignee_id === c.id).sort(workSort);
+  return `<div class="mhead"><div><h2>${isNew ? 'Add a person' : esc(c.name)}</h2></div><button class="x" data-act="closeModal">×</button></div>
+  <div class="stack">
+    <div class="grid2"><label class="f">Name<input data-f="name" value="${esc(c.name || '')}"></label><label class="f">Role<select data-f="kind">${Object.entries(KINDS).map(([k, n]) => `<option value="${k}" ${(c.kind || 'volunteer') === k ? 'selected' : ''}>${n}</option>`).join('')}</select></label></div>
+    <label class="f">Company (for contractors)<input data-f="company" value="${esc(c.company || '')}" placeholder="e.g. Smith Heating & Cooling"></label>
+    <div class="grid2"><label class="f">Email<input type="email" data-f="email" value="${esc(c.email || '')}"></label><label class="f">Phone<input data-f="phone" value="${esc(c.phone || '')}"></label></div>
+    <label class="f">Notes<textarea data-f="notes" rows="2" placeholder="Availability, what they’re good at, account #…">${esc(c.notes || '')}</textarea></label>
+    <label class="chk"><input type="checkbox" data-f="active" data-t="bool" ${c.active !== false ? 'checked' : ''}> Active (shows up when assigning jobs)</label>
+    ${isNew ? '' : `<div class="box"><div class="sectitle">Jobs (${jobs.length})</div>${jobs.slice(0, 12).map(w => `<div class="ck" style="cursor:pointer" data-act="openWork" data-id="${w.id}"><span>#${w.num} ${esc(w.title)}</span>${statusChip(w.status)}</div>`).join('') || '<div class="small muted">None yet.</div>'}</div>`}
+  </div>
+  <div class="mfoot">${isNew ? '' : `<button class="btn bad sm" data-act="delContact">Delete</button>${c.email ? '<button class="btn sm" data-act="composeContact">✉️ Email</button>' : ''}`}<span class="spacer"></span><button class="btn pri" data-act="saveContact">${isNew ? 'Add' : 'Save'}</button></div>`;
+}
+function workText(w) {
+  const lines = [`Work order #${w.num}: ${w.title}`, `Type: ${(TYPES[w.type] || TYPES.other).name}`];
+  if (w.location) lines.push('Where: ' + w.location);
+  if (w.priority && w.priority !== 'normal') lines.push('Priority: ' + PRIORITY[w.priority].name);
+  if (w.due_date) lines.push('Due: ' + fmtD(w.due_date));
+  if (w.assignee_id) lines.push('Assigned to: ' + cname(w.assignee_id));
+  if (w.requested_by || w.requester_phone) lines.push('Requested by: ' + [w.requested_by, w.requester_phone].filter(Boolean).join(', '));
+  if (w.description) lines.push('', w.description);
+  if ((w.checklist || []).length) lines.push('', 'Checklist:', ...w.checklist.map(c => (c.done ? '[x] ' : '[ ] ') + c.text));
+  const ph = (w.photos || []).filter(p => /^https?:/.test(p.url));
+  if (ph.length) lines.push('', 'Photos:', ...ph.map(p => p.url));
+  return lines.join('\n');
+}
+function mCompose(ctx) {
+  const w = ctx.workId && wo(ctx.workId); const withEmail = S.contacts.filter(c => c.active !== false && c.email).sort((a, b) => a.name.localeCompare(b.name));
+  const sel = new Set(ctx.to || []);
+  const subj = ctx.subject ?? (w ? `[DELC Facilities] #${w.num}: ${w.title}` : '[DELC Facilities] ');
+  const body = ctx.body ?? (w ? `Hi,\n\nCould you take a look at this?\n\nThanks,\n${me()}` : `Hi,\n\n\nThanks,\n${me()}`);
+  return `<div class="mhead"><div><h2>✉️ Email${w ? ' about #' + w.num : ''}</h2><div class="small muted">${S.emailCfg ? 'Sends right away from the Facilities email.' : 'Automatic email isn’t on yet — this will open in your email program.'}</div></div><button class="x" data-act="closeModal">×</button></div>
+  <div class="stack">
+    <div><div class="sectitle">To</div><div class="rcpt">${withEmail.map(c => `<label><input type="checkbox" class="to_c" value="${c.id}" ${sel.has(c.id) ? 'checked' : ''}><span>${esc(c.name)}<br><span class="tiny muted">${esc(KINDS[c.kind] || '')}${c.company ? ' · ' + esc(c.company) : ''}</span></span></label>`).join('') || '<div class="small muted">No one on the People tab has an email address yet.</div>'}</div></div>
+    <label class="f">Subject<input id="em_subj" value="${esc(subj)}"></label>
+    <label class="f">Message<textarea id="em_body" rows="7">${esc(body)}</textarea></label>
+    ${w ? `<label class="chk"><input type="checkbox" id="em_details" checked> Include the work order details${(w.photos || []).length ? ' and ' + w.photos.length + ' photo' + (w.photos.length === 1 ? '' : 's') : ''}</label>` : ''}
+    <div class="row" style="justify-content:flex-end"><button class="btn" data-act="mailtoSend">Open in my email app</button>${S.emailCfg ? '<button class="btn pri" data-act="emailSend">Send</button>' : ''}</div></div>`;
+}
+function renderModal() {
+  const m = S.modal; const box = $('#modal');
+  if (!m) { box.innerHTML = ''; document.body.style.overflow = ''; return; }
+  let inner = '', wide = true;
+  if (m.type === 'work') inner = mWork(m.row);
+  else if (m.type === 'pm') inner = mPm(m.row);
+  else if (m.type === 'asset') inner = mAsset(m.row);
+  else if (m.type === 'contact') { inner = mContact(m.row); wide = false; }
+  else if (m.type === 'pmdone') { inner = mPmDone(pmOf(m.id)); wide = false; }
+  else if (m.type === 'compose') { inner = mCompose(m.ctx); wide = false; }
+  const keep = box.querySelector('.modal'); const top = keep ? keep.scrollTop : 0;
+  box.innerHTML = `<div class="modal-bg" data-act="bgClose"><div class="modal ${wide ? 'wide' : ''}" role="dialog">${inner}</div></div>`;
+  document.body.style.overflow = 'hidden';
+  if (m.keepScroll) { box.querySelector('.modal').scrollTop = top; m.keepScroll = false; }
+}
+function grab() {   // copy form fields into the row being edited (so re-renders don't lose typing)
+  const m = S.modal; if (!m || !m.row) return;
+  $$('#modal [data-f]').forEach(el => {
+    const f = el.dataset.f, t = el.dataset.t;
+    let v = el.type === 'checkbox' ? el.checked : el.value;
+    if (t === 'num') v = num(v); else if (t === 'int') v = parseInt(v, 10) || 0; else if (t === 'bool') v = !!el.checked;
+    else if (typeof v === 'string') v = v.trim();
+    if (['due_date','next_due','installed','warranty_until','assignee_id','asset_id'].includes(f) && v === '') v = null;
+    m.row[f] = v;
+  });
+}
+function reModal() { grab(); S.modal.keepScroll = true; renderModal(); }
+/* sub-edits (photos, checklist, costs, notes) save right away on records that already exist */
+async function commitSub() {
+  const m = S.modal; const kind = {work:'work', pm:'pm', asset:'assets'}[m.type];
+  const exists = kind && arr(kind).some(r => r.id === m.row.id);
+  if (exists) { const stored = clone(arr(kind).find(r => r.id === m.row.id)); ['photos','checklist','costs','log'].forEach(k => { if (m.row[k]) stored[k] = m.row[k]; }); await save(kind, stored).catch(() => {}); renderApp(); }
+  reModal();
+}
+
+/* ---------------- render ---------------- */
+function isTyping() { const a = document.activeElement; return a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) && a.type !== 'checkbox' && !a.closest('#modal'); }
+function renderApp() {
+  const app = $('#app');
+  if (PUBLIC) { app.innerHTML = viewPublic(); return; }
+  if (!S.user) { app.innerHTML = viewLogin(); return; }
+  if (isTyping() && $('#app .tabs')) { const a = document.activeElement; if (a.dataset.inp !== 'q') return; }
+  const v = S.view;
+  const body = !S.loaded ? '<div class="page empty">Loading…</div>' : v === 'work' ? viewWork() : v === 'pm' ? viewPm() : v === 'projects' ? viewProjects() : v === 'assets' ? viewAssets() : v === 'contacts' ? viewContacts() : v === 'emails' ? viewEmails() : v === 'settings' ? viewSettings() : viewDash();
+  const focus = document.activeElement && document.activeElement.dataset.inp === 'q' ? document.activeElement.selectionStart : null;
+  app.innerHTML = header() + body;
+  if (focus != null) { const el = $('[data-inp="q"]'); if (el) { el.focus(); try { el.setSelectionRange(focus, focus); } catch (_) {} } }
+}
+
+/* ---------------- email helpers ---------------- */
+async function checkEmail() {
+  if (S.backend === 'local') { S.emailCfg = null; return; }
+  const r = await B.fn({mode:'status'}); S.emailCfg = r && r.ok && r.provider ? {provider: r.provider, from: r.from, intake: r.intake} : null;
+}
+async function autoEmail(mode, w) {
+  if (!S.emailCfg) return;
+  const r = await B.fn({mode, work_id: w.id, sent_by: me()});
+  if (r && r.ok) toast(mode === 'assigned' ? `Emailed ${cname(w.assignee_id)} about #${w.num}` : `Emailed the requester`, 'ok');
+  else if (r && r.error && r.error !== 'not_configured') toast('Email not sent: ' + r.error, 'bad');
+}
+function openMailto(toEmails, subject, body) {
+  const href = `mailto:${encodeURIComponent(toEmails.join(','))}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  if (href.length > 1900) { navigator.clipboard && navigator.clipboard.writeText(body).catch(() => {}); toast('Message is long — it was copied; paste it into the email', 'ok');
+    location.href = `mailto:${encodeURIComponent(toEmails.join(','))}?subject=${encodeURIComponent(subject)}`; }
+  else location.href = href;
+}
+
+/* ---------------- work order logic ---------------- */
+function newWorkRow(type, extra) {
+  return {id: uid(), type, title:'', description:'', location:'', priority:'normal', status:'new', assignee_id:null, due_date:null, budget:0,
+    requested_by: me(), requester_email:'', requester_phone:'', asset_id:null, pm_id:null, checklist:[], costs:[], photos:[], log:[], source:'app', ...(extra || {})};
+}
+function advancePm(pmId, doneIso) {
+  const p = pmOf(pmId); if (!p) return null;
+  const next = addInterval(doneIso, p.every_n, p.every_unit);
+  save('pm', {...clone(p), last_done: doneIso, next_due: next, last_reminded_for: null}).catch(() => {});
+  return next;
+}
+async function saveWork(markDone) {
+  grab(); const r = S.modal.row; const prev = wo(r.id);
+  if (!r.title) { toast('Give it a short title first', 'bad'); return; }
+  if (markDone) r.status = 'done';
+  if (r.status === 'new' && r.assignee_id && (!prev || prev.status === 'new')) r.status = 'assigned';
+  const log = r.log = r.log || [];
+  if (!prev) log.push({at: nowIso(), by: me(), text: 'Created'});
+  else {
+    if (prev.status !== r.status) log.push({at: nowIso(), by: me(), text: 'Status: ' + (STATUS[prev.status] || {}).name + ' → ' + (STATUS[r.status] || {}).name});
+    if (prev.assignee_id !== r.assignee_id) log.push({at: nowIso(), by: me(), text: r.assignee_id ? 'Assigned to ' + cname(r.assignee_id) : 'Unassigned'});
+  }
+  if (r.status === 'done' && (!prev || prev.status !== 'done')) { r.done_at = nowIso(); (r.checklist || []).forEach(c => { if (markDone) c.done = true; }); }
+  if (r.status !== 'done') r.done_at = null;
+  let saved; try { saved = await save('work', clone(r)); } catch (e) { return; }
+  let msg = prev ? 'Saved' : `Created #${saved.num || ''}`;
+  if (saved.status === 'done' && (!prev || prev.status !== 'done') && saved.pm_id) { const nx = advancePm(saved.pm_id, today()); if (nx) msg += ` · next due ${fmtD(nx)}`; }
+  toast(msg, 'ok'); S.modal = null; renderModal(); renderApp();
+  if (saved.assignee_id && (!prev || prev.assignee_id !== saved.assignee_id) && S.settings.autoAssign !== false && saved.status !== 'done') autoEmail('assigned', saved);
+  if (saved.status === 'done' && prev && prev.status !== 'done' && saved.source === 'public' && saved.requester_email && S.settings.autoRequester !== false) autoEmail('requester_update', saved);
+}
+
+/* ---------------- public request form ---------------- */
+const PUBLIC = new URLSearchParams(location.search).has('report');
+const P = {type:'janitorial', photos:[], sending:false, done:null};
+function viewPublic() {
+  if (P.done) return `<div class="pub"><div class="pubhead"><div class="brand"><span class="logo">delc</span> FACILITIES</div></div>
+    <div class="card stack" style="text-align:center;padding:30px 20px"><div style="font-size:46px">🙏</div><h2 style="margin:0;color:var(--navy)">Thank you!</h2>
+    <div>Your request${P.done.num ? ' <b>#' + P.done.num + '</b>' : ''} was sent to the church office. They’ll review it and get the right person on it.</div>${P.done.email ? '<div class="small muted">We’ll email you when it’s taken care of.</div>' : ''}
+    <button class="btn" onclick="P.done=null;P.photos=[];renderApp()">Report something else</button></div></div>`;
+  return `<div class="pub"><div class="pubhead"><div class="brand"><span class="logo">delc</span> FACILITIES</div><h1>Report a building issue</h1><div class="small" style="opacity:.85">Spotted something that needs cleaning or fixing at DELC? Let us know.</div></div>
+  <div class="card stack">
+    <div><div class="sectitle">What kind of issue?</div><div class="choice">${[['janitorial','🧹','Needs cleaning'],['repair','🔧','Something’s broken'],['other','💡','Other / idea']].map(([k, i, l]) => `<button type="button" class="${P.type === k ? 'on' : ''}" data-act="pubType" data-v="${k}"><span>${i}</span>${l}</button>`).join('')}</div></div>
+    <label class="f">What’s the problem?<input id="pb_title" maxlength="120" placeholder="e.g. Paper towels out in women’s restroom"></label>
+    <label class="f">Where?<select id="pb_loc"><option value="">Choose a place…</option>${locations().map(l => `<option>${esc(l)}</option>`).join('')}<option>Other</option></select></label>
+    <label class="f">More details (optional)<textarea id="pb_desc" rows="3" maxlength="2000"></textarea></label>
+    <div><div class="sectitle">Photos (optional)</div><div class="photos">${P.photos.map((f, i) => `<div class="photo"><img src="${f.preview}" alt=""><button class="del" data-act="pubDelPhoto" data-i="${i}">✕</button></div>`).join('')}
+      ${P.photos.length < 4 ? `<label class="addphoto">📷<span>Add a photo</span><input type="file" accept="image/*" multiple class="hidden" data-chg="pubPhotos"></label>` : ''}</div></div>
+    <label class="chk"><input type="checkbox" id="pb_urgent"> This is urgent or a safety problem (leak, no heat, hazard)</label>
+    <div class="box"><div class="sectitle">Your name &amp; how to reach you (optional)</div><div class="stack" style="gap:8px"><input class="inp" id="pb_name" placeholder="Name" autocomplete="name"><div class="grid2"><input class="inp" id="pb_phone" placeholder="Phone" autocomplete="tel"><input class="inp" id="pb_email" type="email" placeholder="Email (to hear back)" autocomplete="email"></div></div></div>
+    <input id="pb_hp" class="hidden" tabindex="-1" autocomplete="off" aria-hidden="true">
+    <div class="err" id="pb_err"></div>
+    <button class="btn gold" data-act="pubSubmit" ${P.sending ? 'disabled' : ''} style="padding:12px;font-size:16px">${P.sending ? 'Sending…' : 'Send request'}</button>
+    <div class="tiny muted" style="text-align:center">For emergencies (fire, gas smell, flooding) call 911 or the church office first.</div></div></div>`;
+}
+async function pubSubmit() {
+  const v = id => ($('#' + id).value || '').trim(); const err = m => { $('#pb_err').textContent = m; };
+  if ($('#pb_hp').value) return;                                    // bot trap
+  const title = v('pb_title'); if (!title) { err('Please say what the problem is.'); return; }
+  const email = v('pb_email'); if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { err('That email address doesn’t look right.'); return; }
+  const last = lsGet('fac_pub_last', 0); if (Date.now() - last < 20000) { err('Please wait a few seconds before sending another.'); return; }
+  P.sending = true; renderApp();
+  try {
+    const id = uid(); const photos = [];
+    for (const f of P.photos) { try { photos.push({...(await B.upload(f.file, `work/${id}/${Date.now()}-${Math.random().toString(36).slice(2, 7)}.jpg`)), at: nowIso(), by: 'Public form'}); } catch (e) { console.warn(e); } }
+    const row = {id, type: P.type, title, description: v('pb_desc'), location: v('pb_loc'), priority: $('#pb_urgent').checked ? 'urgent' : 'normal', status: 'new',
+      requested_by: v('pb_name'), requester_phone: v('pb_phone'), requester_email: email, photos, checklist: [], costs: [], log: [{at: nowIso(), by: v('pb_name') || 'Public form', text: 'Submitted with the public request form'}],
+      source: 'public', created_at: nowIso(), updated_at: nowIso(), budget: 0};
+    const saved = await B.upsert('work', row);
+    lsSet('fac_pub_last', Date.now());
+    B.fn({mode:'notify_new', work_id: id}).catch(() => {});
+    P.done = {num: saved && saved.num, email}; P.sending = false; P.photos = []; renderApp(); window.scrollTo(0, 0);
+  } catch (e) { console.error(e); P.sending = false; renderApp(); setTimeout(() => { const el = $('#pb_err'); if (el) el.textContent = 'Sorry — that didn’t go through. Check your connection and try again.'; }, 0); }
+}
+
+/* ---------------- actions ---------------- */
+const ACT = {
+  async login() {
+    const u = ($('#lu').value || '').trim().toLowerCase(); const pw = $('#lp').value; const err = m => { $('#lerr').textContent = m; };
+    if (!u || !pw) { err('Enter your username and password.'); return; }
+    if (!window.supabase) { err('Could not reach the database library. Check the internet connection, or use demo mode.'); return; }
+    let session = null;
+    if (window.DelcAuth) {
+      err('Signing in…');
+      let res; try { res = await DelcAuth.login(u, pw); } catch (e) { res = {ok:false, error:'Could not reach the login service.'}; }
+      if (!res || !res.ok) { err((res && res.error) || 'That username or password isn’t right.'); return; }
+      session = res.session || DelcAuth.getSession();
+      if (!DelcAuth.hasAppAccess(session, CONFIG.appKey)) { err('Your account doesn’t have access to delcFACILITIES yet. Ask an admin to turn it on in the Admin Portal.'); return; }
+    } else if (pw !== CONFIG.password) { err('The login service is unreachable and that isn’t the fallback password.'); return; }
+    signIn(session, u); boot();
+  },
+  demo() { S.user = ($('#lu') && $('#lu').value.trim().toLowerCase()) || 'demo'; S.userName = S.user; S.backend = 'local'; lsSet('fac_user', S.user); lsSet('fac_backend', 'local'); boot(); },
+  logout() {
+    if (!confirm('Sign out? This also signs you out of the DELC Apps Hub on this device.')) return;
+    B.unsubscribe(); S.user = null; localStorage.removeItem('fac_user'); lsSet('fac_backend', 'remote');
+    if (window.DelcAuth && S.backend !== 'local') { try { DelcAuth.clearSession(); } catch (_) {} }
+    renderApp();
+  },
+  tab(d, e) { if (e) e.preventDefault(); S.view = d.v; S.q = ''; renderApp(); window.scrollTo(0, 0); if (d.v === 'settings' || d.v === 'emails') checkEmail().then(renderApp); },
+  goWork(d) { S.view = 'work'; S.wtype = 'open'; S.wstat = d.s; S.q = ''; renderApp(); },
+  wtype(d) { S.wtype = d.v; renderApp(); },
+  wstat(d) { S.wstat = d.v; renderApp(); },
+  closeModal() { S.modal = null; renderModal(); },
+  bgClose(d, e) { if (e.target.classList.contains('modal-bg')) { S.modal = null; renderModal(); } },
+  zoom(d) { const ps = (S.modal.row.photos || []); const p = ps[+d.i]; if (!p) return; $('#lightbox').innerHTML = `<div class="lightbox" onclick="this.remove()"><img src="${esc(p.url)}" alt=""></div>`; },
+  newWork(d) { const t = d.type || 'repair'; S.modal = {type:'work', row: newWorkRow(t, d.asset ? {asset_id: d.asset, location: (asset(d.asset) || {}).location || ''} : null)}; renderModal(); setTimeout(() => { const el = $('#modal [data-f=title]'); el && el.focus(); }, 40); },
+  openWork(d, e) { if (e) e.preventDefault(); const w = wo(d.id); if (!w) return; S.modal = {type:'work', row: clone(w)}; renderModal(); },
+  saveWork(d) { saveWork(!!d.done); },
+  async delWork() { const w = S.modal.row; if (!confirm(`Delete work order #${w.num} “${w.title}”? This can’t be undone.`)) return; (w.photos || []).forEach(p => B.unupload(p.path)); await del('work', w.id); S.modal = null; renderModal(); renderApp(); toast('Deleted'); },
+  printWork() { grab(); renderModal(); document.body.classList.add('print-modal'); setTimeout(() => { window.print(); document.body.classList.remove('print-modal'); }, 60); },
+  ckAdd() { const el = $('#ck_new'); const t = (el.value || '').trim(); if (!t) return; grab(); (S.modal.row.checklist = S.modal.row.checklist || []).push({text: t, done: false}); commitSub().then(() => { const n = $('#ck_new'); n && n.focus(); }); },
+  ckDel(d) { grab(); S.modal.row.checklist.splice(+d.i, 1); commitSub(); },
+  costAdd() { const amt = num($('#cost_amt').value); if (!amt) { toast('Enter an amount', 'bad'); return; } grab();
+    (S.modal.row.costs = S.modal.row.costs || []).push({id: uid(), desc: $('#cost_desc').value.trim(), vendor: $('#cost_vendor').value.trim(), amount: amt, date: $('#cost_date').value || today()}); commitSub(); },
+  costDel(d) { grab(); S.modal.row.costs.splice(+d.i, 1); commitSub(); },
+  logAdd() { const t = ($('#log_new').value || '').trim(); if (!t) return; grab(); (S.modal.row.log = S.modal.row.log || []).push({at: nowIso(), by: me(), text: t}); commitSub(); },
+  async delPhoto(d) { if (!confirm('Remove this photo?')) return; grab(); const p = S.modal.row.photos.splice(+d.i, 1)[0]; if (p) B.unupload(p.path); await commitSub(); },
+  composeWork() { grab(); const w = S.modal.row; if (!wo(w.id)) { toast('Create the work order first', 'bad'); return; } S.modal = {type:'compose', back: S.modal, ctx:{workId: w.id, to: w.assignee_id ? [w.assignee_id] : []}}; renderModal(); },
+  composeGeneral() { S.modal = {type:'compose', ctx:{}}; renderModal(); },
+  composeContact() { grab(); const c = S.modal.row; S.modal = {type:'compose', ctx:{to:[c.id]}}; renderModal(); },
+  async requesterUpdate() {
+    grab(); const w = S.modal.row;
+    if (!S.emailCfg) { openMailto([w.requester_email], `Your DELC facilities request #${w.num}`, `Hi ${w.requested_by || ''},\n\nThank you for letting us know about "${w.title}". ${w.status === 'done' ? 'It has been taken care of.' : 'Our Facilities team has it and will follow up.'}\n\n${me()}\nDELC Facilities`); return; }
+    const r = await B.fn({mode:'requester_update', work_id: w.id, sent_by: me()}); toast(r.ok ? 'Update sent to ' + w.requester_email : 'Not sent: ' + r.error, r.ok ? 'ok' : 'bad');
+  },
+  async emailSend() {
+    const ctx = S.modal.ctx; const ids = $$('.to_c:checked').map(c => c.value); if (!ids.length) { toast('Pick at least one person', 'bad'); return; }
+    const subject = $('#em_subj').value.trim() || 'DELC Facilities', text = $('#em_body').value; const det = $('#em_details') ? $('#em_details').checked : false;
+    const btn = $('[data-act=emailSend]'); btn.disabled = true; btn.textContent = 'Sending…';
+    const r = await B.fn({mode:'send', to_contact_ids: ids, subject, text, work_id: ctx.workId || null, attach_details: det, sent_by: me()});
+    if (r.ok) {
+      toast(`Sent to ${ids.length} ${ids.length === 1 ? 'person' : 'people'}`, 'ok');
+      if (ctx.workId) { const w = wo(ctx.workId); if (w) save('work', {...clone(w), log: [...(w.log || []), {at: nowIso(), by: me(), text: 'Emailed ' + ids.map(cname).join(', ') + ': ' + subject}]}).catch(() => {}); }
+      S.modal = S.modal.back ? {...S.modal.back, row: clone(wo(S.modal.back.row.id) || S.modal.back.row)} : null; renderModal(); reload();
+    } else { btn.disabled = false; btn.textContent = 'Send'; toast('Not sent: ' + (r.error === 'not_configured' ? 'automatic email isn’t set up — use “Open in my email app”' : r.error), 'bad'); }
+  },
+  mailtoSend() {
+    const ctx = S.modal.ctx; const ids = $$('.to_c:checked').map(c => c.value); const emails = ids.map(id => (cn(id) || {}).email).filter(Boolean);
+    let body = $('#em_body').value; const w = ctx.workId && wo(ctx.workId);
+    if (w && $('#em_details') && $('#em_details').checked) body += '\n\n— — —\n' + workText(w);
+    openMailto(emails, $('#em_subj').value, body);
+  },
+  newPm(d) { S.modal = {type:'pm', row:{id: uid(), title:'', category:'', asset_id: d.asset || null, location: d.asset ? (asset(d.asset) || {}).location || '' : '', every_n: 3, every_unit:'month', next_due: today(), assignee_id: null, checklist: [], est_cost: 0, remind_days: 7, notes:'', active: true}}; renderModal(); },
+  openPm(d, e) { if (e) { e.preventDefault(); e.stopPropagation(); } const p = pmOf(d.id); if (!p) return; S.modal = {type:'pm', row: clone(p)}; renderModal(); },
+  async savePm() {
+    grab(); const r = S.modal.row; if (!r.title) { toast('Give the task a name', 'bad'); return; }
+    if (!r.next_due) r.next_due = today(); r.every_n = Math.max(1, r.every_n | 0);
+    const prev = pmOf(r.id); if (prev && prev.next_due !== r.next_due) r.last_reminded_for = null;
+    try { await save('pm', clone(r)); } catch (e) { return; } toast(prev ? 'Saved' : 'Schedule created', 'ok'); S.modal = null; renderModal(); renderApp();
+  },
+  async delPm() { const p = S.modal.row; if (!confirm(`Delete the schedule “${p.title}”? Past work orders are kept.`)) return; await del('pm', p.id); S.modal = null; renderModal(); renderApp(); },
+  pmToWork(d, e) { if (e) e.stopPropagation(); const p = pmOf(d.id); if (!p) return;
+    const ow = openPmWork(p); if (ow) { ACT.openWork({id: ow.id}); return; }
+    S.modal = {type:'work', row: newWorkRow('pm', {title: p.title, location: p.location || (asset(p.asset_id) || {}).location || '', asset_id: p.asset_id, pm_id: p.id, assignee_id: p.assignee_id, due_date: p.next_due, checklist: (p.checklist || []).map(c => ({text: c.text, done: false})), description: p.notes || '', requested_by: 'Maintenance schedule'})}; renderModal(); },
+  pmDone(d, e) { if (e) e.stopPropagation(); S.modal = {type:'pmdone', id: d.id}; renderModal(); },
+  async pmDoneSave(d) {
+    const p = pmOf(d.id); const date = $('#pd_date').value || today(); const cost = num($('#pd_cost').value); const who = $('#pd_who').value || null; const notes = $('#pd_notes').value.trim();
+    const ow = openPmWork(p);
+    const row = ow ? clone(ow) : newWorkRow('pm', {title: p.title, location: p.location || '', asset_id: p.asset_id, pm_id: p.id, requested_by: 'Maintenance schedule', checklist: (p.checklist || []).map(c => ({text: c.text, done: true}))});
+    row.status = 'done'; row.done_at = new Date(date + 'T12:00:00').toISOString(); row.assignee_id = who || row.assignee_id; row.due_date = row.due_date || p.next_due;
+    if (cost) row.costs = [...(row.costs || []), {id: uid(), desc: p.title, vendor: who ? cname(who) : '', amount: cost, date}];
+    row.log = [...(row.log || []), {at: nowIso(), by: me(), text: 'Marked done' + (notes ? ': ' + notes : '')}];
+    (row.checklist || []).forEach(c => c.done = true);
+    try { await save('work', row); } catch (e) { return; }
+    const nx = advancePm(p.id, date); toast(`Done — next due ${fmtD(nx)}`, 'ok'); S.modal = null; renderModal(); renderApp();
+  },
+  async seedPm() {
+    const t = today(); const mk = (title, category, n, unit, ck) => ({id: uid(), title, category, every_n: n, every_unit: unit, next_due: t, checklist: ck.map(text => ({text, done:false})), remind_days: 7, active: true, est_cost: 0, notes: '', location: ''});
+    const rows = [mk('Replace HVAC filters', 'HVAC', 3, 'month', ['Turn off unit', 'Replace filter (note size)', 'Write date on filter']),
+      mk('Fire extinguisher inspection', 'Fire & Safety', 1, 'year', ['Check pressure gauge', 'Check pin & seal', 'Sign inspection tag']),
+      mk('Test smoke & CO detectors', 'Fire & Safety', 6, 'month', ['Press test button on each', 'Replace batteries if needed']),
+      mk('Clean gutters & downspouts', 'Roof & Exterior', 6, 'month', ['Clear gutters', 'Flush downspouts', 'Check for damage']),
+      mk('Test emergency & exit lights', 'Fire & Safety', 1, 'month', ['Press test on each fixture', 'Note any that fail']),
+      mk('Building walk-through', 'Building', 1, 'month', ['Check for leaks / stains', 'Doors & locks work', 'Lights out', 'Trip hazards'])];
+    for (const r of rows) await save('pm', r).catch(() => {}); toast('Added 6 schedules — set the real due dates and who does them', 'ok'); renderApp();
+  },
+  newAsset() { S.modal = {type:'asset', row:{id: uid(), name:'', category:'', location:'', photos: [], active: true}}; renderModal(); },
+  openAsset(d) { const a = asset(d.id); if (!a) return; S.modal = {type:'asset', row: clone(a)}; renderModal(); },
+  async saveAsset() { grab(); const r = S.modal.row; if (!r.name) { toast('Give it a name', 'bad'); return; } const prev = asset(r.id); try { await save('assets', clone(r)); } catch (e) { return; } toast(prev ? 'Saved' : 'Added', 'ok'); S.modal = null; renderModal(); renderApp(); },
+  async delAsset() { const a = S.modal.row; if (!confirm(`Delete “${a.name}”? Its work orders and schedules are kept.`)) return; await del('assets', a.id); S.modal = null; renderModal(); renderApp(); },
+  newContact() { S.modal = {type:'contact', row:{id: uid(), name:'', kind:'volunteer', active: true}}; renderModal(); setTimeout(() => { const el = $('#modal [data-f=name]'); el && el.focus(); }, 40); },
+  openContact(d) { const c = cn(d.id); if (!c) return; S.modal = {type:'contact', row: clone(c)}; renderModal(); },
+  async saveContact() { grab(); const r = S.modal.row; if (!r.name) { toast('Enter a name', 'bad'); return; } if (r.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(r.email)) { toast('That email address doesn’t look right', 'bad'); return; }
+    const prev = cn(r.id); try { await save('contacts', clone(r)); } catch (e) { return; } toast(prev ? 'Saved' : 'Added ' + r.name, 'ok'); S.modal = null; renderModal(); renderApp(); },
+  async delContact() { const c = S.modal.row; const n = S.work.filter(w => w.assignee_id === c.id && isOpen(w)).length;
+    if (!confirm(`Delete ${c.name}?${n ? `\n\nThey have ${n} open job(s) — those become unassigned. Tip: untick “Active” instead to keep their history.` : ''}`)) return;
+    for (const w of S.work.filter(w => w.assignee_id === c.id && isOpen(w))) await save('work', {...clone(w), assignee_id: null}).catch(() => {});
+    await del('contacts', c.id); S.modal = null; renderModal(); renderApp(); },
+  async checkEmail() { S.emailCfg = undefined; renderApp(); await checkEmail(); renderApp(); },
+  copyLink() { const el = $('#publink'); el.select(); (navigator.clipboard ? navigator.clipboard.writeText(el.value) : Promise.reject()).then(() => toast('Link copied', 'ok')).catch(() => { document.execCommand('copy'); toast('Link copied', 'ok'); }); },
+  async saveLists() {
+    const lines = id => [...new Set($(id).value.split('\n').map(s => s.trim()).filter(Boolean))];
+    await saveSettings({locations: lines('#set_locs'), categories: lines('#set_cats')}); toast('Saved', 'ok'); renderApp();
+  },
+  exportJson() {
+    const data = {app:'delc-facilities', version:1, exported_at: nowIso(), contacts: S.contacts, assets: S.assets, pm: S.pm, work: S.work, settings: S.settings};
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], {type:'application/json'}));
+    a.download = `delc-facilities-backup-${today()}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  },
+  importJson() { const f = $('#jsonFile'); f.value = ''; f.onchange = () => f.files[0] && restore(f.files[0]); f.click(); },
+  pubType(d) { P.type = d.v; $$('.choice button').forEach(b => b.classList.toggle('on', b.dataset.v === d.v)); },
+  pubDelPhoto(d) { const keep = {}; ['pb_title','pb_loc','pb_desc','pb_name','pb_phone','pb_email'].forEach(id => keep[id] = $('#' + id).value); P.photos.splice(+d.i, 1); renderApp(); Object.entries(keep).forEach(([id, v]) => $('#' + id).value = v); },
+  pubSubmit
+};
+async function restore(file) {
+  try {
+    const d = JSON.parse(await file.text()); if (d.app !== 'delc-facilities') throw new Error('Not a DELC Facilities backup');
+    if (!confirm(`Restore ${d.work.length} work orders, ${d.pm.length} schedules, ${d.assets.length} equipment items and ${d.contacts.length} people? Records with the same ID are overwritten; nothing is deleted.`)) return;
+    for (const k of ['contacts','assets','pm','work']) for (const r of d[k] || []) await B.upsert(k, r);
+    if (d.settings) await B.saveSettings(d.settings);
+    toast('Backup restored', 'ok'); reload();
+  } catch (e) { toast('Restore failed: ' + (e.message || e), 'bad'); }
+}
+
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-act]'); if (!b || b.disabled) return;
+  const fn = ACT[b.dataset.act]; if (!fn) return;
+  if (b.dataset.act === 'bgClose' && b !== e.target) return;
+  fn(b.dataset, e, b);
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && (e.target.id === 'lp' || e.target.id === 'lu')) ACT.login();
+  if (e.key === 'Enter' && e.target.id === 'ck_new') { e.preventDefault(); ACT.ckAdd(); }
+  if (e.key === 'Enter' && e.target.id === 'log_new') { e.preventDefault(); ACT.logAdd(); }
+  if (e.key === 'Enter' && e.target.id === 'cost_amt') { e.preventDefault(); ACT.costAdd(); }
+  if (e.key === 'Escape') { if ($('#lightbox').innerHTML) $('#lightbox').innerHTML = ''; else if (S.modal) { S.modal = null; renderModal(); } }
+});
+document.addEventListener('input', e => {
+  const k = e.target.dataset.inp; if (k) { S[k] = e.target.value; renderApp(); }
+  if (e.target.id === 'pd_date') { const p = S.modal && pmOf(S.modal.id); const el = $('#pd_next'); if (p && el) el.value = fmtD(addInterval(e.target.value || today(), p.every_n, p.every_unit)); }
+});
+document.addEventListener('change', async e => {
+  const el = e.target; if (el.closest('#modal') && el.dataset.f === 'type' && S.modal && S.modal.row) { reModal(); return; }
+  const k = el.dataset.chg; if (!k) return;
+  if (k === 'ckTick') { grab(); S.modal.row.checklist[+el.dataset.i].done = el.checked; commitSub(); return; }
+  if (k === 'photoTag') { grab(); S.modal.row.photos[+el.dataset.i].tag = el.value; commitSub(); return; }
+  if (k === 'addPhotos') {
+    const files = [...el.files]; if (!files.length) return; grab(); const row = S.modal.row; const kind = S.modal.type === 'asset' ? 'assets' : 'work';
+    toast(`Uploading ${files.length} photo${files.length === 1 ? '' : 's'}…`);
+    for (const f of files) {
+      try { const up = await B.upload(f, `${kind}/${row.id}/${Date.now()}-${Math.random().toString(36).slice(2, 7)}.jpg`); (row.photos = row.photos || []).push({...up, at: nowIso(), by: me(), tag: ''}); }
+      catch (err) { console.error(err); toast('A photo didn’t upload: ' + (err.message || err), 'bad'); }
+    }
+    if (S.modal && S.modal.row === row) await commitSub(); return;
+  }
+  if (k === 'pubPhotos') {
+    const keep = {}; ['pb_title','pb_loc','pb_desc','pb_name','pb_phone','pb_email'].forEach(id => keep[id] = $('#' + id).value); const urgent = $('#pb_urgent').checked;
+    for (const f of [...el.files].slice(0, 4 - P.photos.length)) { const small = await shrink(f, 1600); P.photos.push({file: small, preview: await blobToDataUrl(await shrink(f, 300))}); }
+    renderApp(); Object.entries(keep).forEach(([id, v]) => $('#' + id).value = v); $('#pb_urgent').checked = urgent; return;
+  }
+  if (k === 'notify') { const ids = $$('[data-chg=notify]:checked').map(c => c.value); await saveSettings({notifyIds: ids}); toast('Saved', 'ok'); return; }
+  if (k === 'setflag') { await saveSettings({[el.dataset.k]: el.checked}); toast('Saved', 'ok'); return; }
+});
+
+/* ---------------- boot ---------------- */
+async function boot() {
+  B = S.backend === 'local' ? Local : Remote;
+  if (B === Remote) { try { Remote.init(); } catch (e) { $('#app').innerHTML = viewLogin('Could not connect to the database.'); return; } }
+  S.view = lsGet('fac_view') || 'dash'; renderApp();
+  await reload();
+  B.subscribe(remoteChanged);
+  const deep = new URLSearchParams(location.search).get('wo');
+  if (deep) { history.replaceState(null, '', location.pathname); if (wo(deep)) { S.view = 'work'; renderApp(); ACT.openWork({id: deep}); } else toast('That work order wasn’t found — it may have been deleted', 'bad'); }
+  checkEmail().then(renderApp);
+}
+window.addEventListener('beforeunload', () => lsSet('fac_view', S.view));
+function signIn(session, fallbackUser) {
+  S.backend = 'remote'; lsSet('fac_backend', 'remote');
+  S.user = session ? session.username : fallbackUser; S.userName = session ? (session.displayName || session.username) : fallbackUser;
+  lsSet('fac_user', S.user);
+}
+function hubSession() { if (!window.DelcAuth) return null; try { const s = DelcAuth.getSession(); return s && DelcAuth.hasAppAccess(s, CONFIG.appKey) ? s : null; } catch (_) { return null; } }
+(async function start() {
+  const params = new URLSearchParams(location.search);
+  if (params.get('demo') === '1') lsSet('fac_backend', 'local');
+  const backend = lsGet('fac_backend') || 'remote';
+  if (PUBLIC) {
+    B = backend === 'local' ? Local : Remote; S.backend = backend;
+    if (B === Remote) { try { Remote.init(); const st = await Remote.q(Remote.sb.from('fac_settings').select('data').eq('id', 'main').maybeSingle()); S.settings = (st && st.data) || {}; } catch (e) { console.warn(e); } }
+    else S.settings = Local.db().settings;
+    renderApp(); return;
+  }
+  if (backend === 'local') { S.backend = 'local'; S.user = lsGet('fac_user'); S.userName = S.user; if (S.user) boot(); else renderApp(); return; }
+  let sess = hubSession();
+  if (sess && DelcAuth.refreshSession) { try { await DelcAuth.refreshSession(); sess = hubSession(); } catch (_) {} }
+  if (sess && window.supabase) { signIn(sess); boot(); return; }
+  S.user = null;
+  const s0 = window.DelcAuth && (() => { try { return DelcAuth.getSession(); } catch (_) { return null; } })();
+  $('#app').innerHTML = viewLogin(s0 ? `You’re signed in to the hub as ${s0.username}, but your account doesn’t have access to delcFACILITIES. Ask an admin to turn it on, or sign in as someone else.` : '');
+})();
+</script>
+</body>
+</html>
