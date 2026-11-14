@@ -152,6 +152,8 @@ table.tb td{padding:8px;border-bottom:1px solid #f0f0f2;vertical-align:top}
   body.print-modal #app{display:none}
   body.print-modal .modal-bg{position:static;background:none;display:block}
   body.print-modal .modal{max-height:none;box-shadow:none;max-width:none;overflow:visible}
+  body.print-modal .mhead h2{display:none}
+  @page{margin:.5in}
   .card,.item,.box{break-inside:avoid}
 }
 
@@ -177,6 +179,10 @@ table.tb td{padding:8px;border-bottom:1px solid #f0f0f2;vertical-align:top}
 .tabs .tab{background:none!important;border:0!important;border-bottom:3px solid transparent!important;border-radius:0!important;box-shadow:none!important;color:#c3cfe2!important;padding:10px 14px!important;font-size:14px!important;font-weight:600!important;font-family:inherit!important;line-height:1.3!important;white-space:nowrap;cursor:pointer;flex:0 0 auto!important;min-height:0!important}
 .tabs .tab.on{color:#fff!important;border-bottom-color:#fff!important;background:none!important}
 .tabs .tab:not(.on):hover{color:#fff!important;background:none!important}
+
+/* print letterhead (2026-11-14) */
+.delc-print-only{display:none}
+@media print{.delc-print-only{display:block!important}}
 </style>
 </head>
 <body>
@@ -910,7 +916,10 @@ const ACT = {
   openWork(d, e) { if (e) e.preventDefault(); const w = wo(d.id); if (!w) return; S.modal = {type:'work', row: clone(w)}; renderModal(); },
   saveWork(d) { saveWork(!!d.done); },
   async delWork() { const w = S.modal.row; if (!confirm(`Delete work order #${w.num} “${w.title}”? This can’t be undone.`)) return; (w.photos || []).forEach(p => B.unupload(p.path)); await del('work', w.id); S.modal = null; renderModal(); renderApp(); toast('Deleted'); },
-  printWork() { grab(); renderModal(); document.body.classList.add('print-modal'); setTimeout(() => { window.print(); document.body.classList.remove('print-modal'); }, 60); },
+  printWork() { grab(); renderModal(); document.body.classList.add('print-modal');
+    const w = S.modal.row, t = TYPES[w.type] || TYPES.other, st = (STATUS[w.status] || {name: w.status || ''}).name;
+    const off = addPrintLH(document.querySelector('#modal .modal') || $('#modal'), {title: 'Work order #' + (w.num || ''), sub: t.name + ' · ' + (w.title || ''), right: esc(st) + (w.created_at ? '<br>Opened ' + esc(fmtDT(w.created_at)) : ''), app: 'delcFACILITIES', foot: 'Work order'});
+    setTimeout(() => { window.print(); document.body.classList.remove('print-modal'); off(); }, 60); },
   ckAdd() { const el = $('#ck_new'); const t = (el.value || '').trim(); if (!t) return; grab(); (S.modal.row.checklist = S.modal.row.checklist || []).push({text: t, done: false}); commitSub().then(() => { const n = $('#ck_new'); n && n.focus(); }); },
   ckDel(d) { grab(); S.modal.row.checklist.splice(+d.i, 1); commitSub(); },
   costAdd() { const amt = num($('#cost_amt').value); if (!amt) { toast('Enter an amount', 'bad'); return; } grab();
@@ -1398,13 +1407,24 @@ renderModal = function () { const m = S.modal; if (!m || m.type !== 'incBlank') 
     <button class="btn" data-act="incBlankGo" data-v="all" style="justify-content:flex-start">📋 Full form <span class="tiny muted" style="margin-left:auto">every section</span></button></div></div></div>`; };
 
 /* ---- printing ---- */
+
+/* church letterhead on printed pages (2026-11-14): added just before printing, removed afterwards — nothing changes on screen */
+function addPrintLH(host, o) {
+  const top = document.createElement('div'), bot = document.createElement('div');
+  top.className = bot.className = 'delc-print-only';
+  top.innerHTML = window.DELC ? DELC.letterhead(o) : '<div style="border-bottom:3px solid #1B3254;padding-bottom:6px;margin-bottom:10px"><div style="font-size:11px;color:#555">Duncansville Evangelical Lutheran Church</div><div style="font-size:20px;font-weight:800;color:#1B3254">' + esc(o.title || '') + '</div>' + (o.sub ? '<div style="font-size:12px">' + esc(o.sub) + '</div>' : '') + '</div>';
+  bot.innerHTML = window.DELC ? DELC.footer(o.app, o.foot || '') : '';
+  (host || document.body).prepend(top); (host || document.body).append(bot);
+  let gone = false; const off = () => { if (gone) return; gone = true; top.remove(); bot.remove(); window.removeEventListener('afterprint', off); };
+  window.addEventListener('afterprint', off); return off;
+}
 function incPrintDoc(html) {
   let el = document.getElementById('incprint'); if (!el) { el = document.createElement('div'); el.id = 'incprint'; document.body.appendChild(el); }
-  el.innerHTML = html; document.body.classList.add('print-inc');
+  el.innerHTML = html + (window.DELC ? '<div class="pdoc">' + DELC.footer('delcFACILITIES', 'Facilities & Security') + '</div>' : ''); document.body.classList.add('print-inc');
   const done = () => { document.body.classList.remove('print-inc'); el.innerHTML = ''; window.removeEventListener('afterprint', done); };
   window.addEventListener('afterprint', done); setTimeout(() => { window.print(); setTimeout(done, 1500); }, 80);
 }
-const pHead = (title, num) => `<div class="ph"><div><div class="pch">Duncansville Evangelical Lutheran Church</div><h1>${title}</h1></div><div class="pnum">${num ? 'Report #' + esc(num) : 'Report # ________'}<div>Facilities &amp; Security</div></div></div>`;
+const pHead = (title, num) => window.DELC ? DELC.letterhead({title: title, right: (num ? 'Report #' + esc(num) : 'Report # ________') + '<br>Facilities &amp; Security'}) : `<div class="ph"><div><div class="pch">Duncansville Evangelical Lutheran Church</div><h1>${title}</h1></div><div class="pnum">${num ? 'Report #' + esc(num) : 'Report # ________'}<div>Facilities &amp; Security</div></div></div>`;
 const pSec = (n, t, body) => `<div class="psec"><h2><span>${n}</span>${t}</h2>${body}</div>`;
 const pLine = (label, v, wide) => `<div class="pl ${wide ? 'w' : ''}"><span class="lb">${esc(label)}</span><span class="v">${v ? esc(v) : '&nbsp;'}</span></div>`;
 const wl = n => '<div class="wl"></div>'.repeat(Math.max(1, n));
