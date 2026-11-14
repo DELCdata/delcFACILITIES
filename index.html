@@ -948,6 +948,7 @@ const ACT = {
       <div class="wo-sign"><div>Completed by</div><div>Date</div><div>Time spent</div></div>`;
     document.body.appendChild(box); document.body.classList.add('print-wo');
     const off = addPrintLH(box, {title: 'Work order #' + (w.num || ''), sub: w.title || '', right: esc(st) + (w.created_at ? '<br>Opened ' + esc(fmtD(w.created_at)) : ''), app: 'delcFACILITIES', foot: 'Work order #' + (w.num || '')});
+    if (window.DELC && DELC.repeatPages) DELC.repeatPages(box);
     let gone = false; const done = () => { if (gone) return; gone = true; document.body.classList.remove('print-wo'); box.remove(); off(); window.removeEventListener('afterprint', done); };
     window.addEventListener('afterprint', done);
     setTimeout(() => { window.print(); setTimeout(done, 400); }, 60); },
@@ -1452,6 +1453,7 @@ function addPrintLH(host, o) {
 function incPrintDoc(html) {
   let el = document.getElementById('incprint'); if (!el) { el = document.createElement('div'); el.id = 'incprint'; document.body.appendChild(el); }
   el.innerHTML = html + (window.DELC ? '<div class="pdoc">' + DELC.footer('delcFACILITIES', 'Facilities & Security') + '</div>' : ''); document.body.classList.add('print-inc');
+  if (window.DELC && DELC.repeatPages) DELC.repeatPages(el);   // letterhead + footer on every page of long reports (2026-11-14)
   const done = () => { document.body.classList.remove('print-inc'); el.innerHTML = ''; window.removeEventListener('afterprint', done); };
   window.addEventListener('afterprint', done); setTimeout(() => { window.print(); setTimeout(done, 1500); }, 80);
 }
