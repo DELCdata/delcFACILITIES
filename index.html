@@ -821,6 +821,12 @@ async function saveWork(markDone) {
 }
 
 /* ---------------- public request form ---------------- */
+function pubHold(fn) {
+  const ids = ['pb_title', 'pb_loc', 'pb_desc', 'pb_name', 'pb_phone', 'pb_email', 'pb_itype'], keep = {};
+  ids.forEach(id => { const el = $('#' + id); if (el) keep[id] = el.value; }); const u = $('#pb_urgent'), urgent = u && u.checked;
+  fn();
+  Object.entries(keep).forEach(([id, v]) => { const el = $('#' + id); if (el) el.value = v; }); const u2 = $('#pb_urgent'); if (u2) u2.checked = !!urgent;
+}
 const PUBLIC = new URLSearchParams(location.search).has('report');
 const P = {type:'janitorial', photos:[], sending:false, done:null};
 function viewPublic() {
@@ -849,7 +855,7 @@ async function pubSubmit() {
   const title = v('pb_title'); if (!title) { err('Please say what the problem is.'); return; }
   const email = v('pb_email'); if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { err('That email address doesn’t look right.'); return; }
   const last = lsGet('fac_pub_last', 0); if (Date.now() - last < 20000) { err('Please wait a few seconds before sending another.'); return; }
-  P.sending = true; renderApp();
+  pubHold(() => { P.sending = true; renderApp(); });   // keep what was typed: the redraw used to wipe details, place, name, phone and urgent (2026-11-14)
   try {
     const id = uid(); const photos = [];
     for (const f of P.photos) { try { photos.push({...(await B.upload(f.file, `work/${id}/${Date.now()}-${Math.random().toString(36).slice(2, 7)}.jpg`)), at: nowIso(), by: 'Public form'}); } catch (e) { console.warn(e); } }
@@ -860,7 +866,7 @@ async function pubSubmit() {
     lsSet('fac_pub_last', Date.now());
     B.fn({mode:'notify_new', work_id: id}).catch(() => {});
     P.done = {num: saved && saved.num, email}; P.sending = false; P.photos = []; renderApp(); window.scrollTo(0, 0);
-  } catch (e) { console.error(e); P.sending = false; renderApp(); setTimeout(() => { const el = $('#pb_err'); if (el) el.textContent = 'Sorry — that didn’t go through. Check your connection and try again.'; }, 0); }
+  } catch (e) { console.error(e); pubHold(() => { P.sending = false; renderApp(); }); setTimeout(() => { const el = $('#pb_err'); if (el) el.textContent = 'Sorry — that didn’t go through. Check your connection and try again.'; }, 0); }
 }
 
 /* ---------------- actions ---------------- */
@@ -1267,7 +1273,7 @@ pubSubmit = async function () {
   if ($('#pb_hp').value) return; const title = v('pb_title'); if (!title) { err('Please say what happened.'); return; }
   const email = v('pb_email'); if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { err('That email address doesn’t look right.'); return; }
   const last = lsGet('fac_pub_last', 0); if (Date.now() - last < 20000) { err('Please wait a few seconds before sending another.'); return; }
-  P.sending = true; renderApp();
+  pubHold(() => { P.sending = true; renderApp(); });   // keep what was typed: the redraw used to wipe details, place, name, phone and urgent (2026-11-14)
   try {
     const id = uid(); const photos = [];
     for (const f of P.photos) { try { photos.push({...(await B.upload(f.file, `incidents/${id}/${Date.now()}-${Math.random().toString(36).slice(2, 7)}.jpg`)), at: nowIso(), by: 'Public form'}); } catch (e) { console.warn(e); } }
@@ -1276,7 +1282,7 @@ pubSubmit = async function () {
     const saved = await B.upsert('incidents', row); lsSet('fac_pub_last', Date.now());
     B.fn({mode: 'notify_incident', incident_id: id}).catch(() => {});
     P.done = {num: saved && saved.num, email, incident: true}; P.sending = false; P.photos = []; renderApp(); window.scrollTo(0, 0);
-  } catch (e) { console.error(e); P.sending = false; renderApp(); setTimeout(() => { const el = $('#pb_err'); if (el) el.textContent = 'Sorry — that didn’t go through. Check your connection and try again.'; }, 0); }
+  } catch (e) { console.error(e); pubHold(() => { P.sending = false; renderApp(); }); setTimeout(() => { const el = $('#pb_err'); if (el) el.textContent = 'Sorry — that didn’t go through. Check your connection and try again.'; }, 0); }
 };
 ACT.pubSubmit = () => pubSubmit();
 /* deep link ?inc=<id> from the incident email */
