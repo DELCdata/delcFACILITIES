@@ -146,6 +146,15 @@ table.tb td{padding:8px;border-bottom:1px solid #f0f0f2;vertical-align:top}
 .choice button span{font-size:24px}
 @media(max-width:900px){.dash,.mgrid{grid-template-columns:1fr}}
 @media(max-width:600px){.grid2,.grid3{grid-template-columns:1fr}.page{padding:12px}.item .right{display:none}.top{padding:8px 12px;gap:8px}.top .uname{display:none}.tabs{position:static}}
+#wo-print{display:none;font-size:13px;color:#18233a}
+#wo-print h3{font-size:14px;margin:16px 0 6px;color:#1B3254;border-bottom:1.5px solid #1B3254;padding-bottom:3px}
+#wo-print .wo-kv th{text-align:left;color:#5d6a82;font-weight:600;padding:3px 16px 3px 0;white-space:nowrap;vertical-align:top}#wo-print .wo-kv td{padding:3px 0}
+#wo-print .wo-desc{white-space:pre-wrap;line-height:1.45}#wo-print .wo-blank{color:#5d6a82;font-style:italic}
+#wo-print .wo-ck{list-style:none;padding:0;margin:0}#wo-print .wo-ck li{display:flex;gap:8px;align-items:center;padding:3px 0}#wo-print .wo-cb{width:14px;height:14px;border:1.5px solid #1B3254;border-radius:3px;display:inline-grid;place-items:center;font-size:11px;font-weight:800}
+#wo-print .wo-tbl{width:100%;border-collapse:collapse}#wo-print .wo-tbl th,#wo-print .wo-tbl td{text-align:left;padding:4px 6px;border-bottom:1px solid #dbe1ea;vertical-align:top}#wo-print .wo-tbl th{font-size:11px;text-transform:uppercase;color:#5d6a82}#wo-print .r{text-align:right}#wo-print .tot td{font-weight:700;border-top:1.5px solid #1B3254}
+#wo-print .wo-log td:first-child{white-space:nowrap;width:1%}#wo-print .wo-ph{display:flex;gap:8px;flex-wrap:wrap}#wo-print .wo-ph img{width:150px;height:112px;object-fit:cover;border-radius:6px;border:1px solid #ccc}
+#wo-print .wo-lines div{border-bottom:1px solid #999;height:26px}#wo-print .wo-sign{display:grid;grid-template-columns:2fr 1fr 1fr;gap:18px;margin-top:26px}#wo-print .wo-sign div{border-top:1px solid #333;padding-top:3px;font-size:11px;color:#5d6a82}
+#wo-print h3,#wo-print .wo-sign{break-inside:avoid}
 @media print{
   .top,.tabs,.demo-banner,.toolbar,.btn,#toast,.mfoot,.addphoto,.rm,.del,.x{display:none!important}
   body{background:#fff}
@@ -154,6 +163,8 @@ table.tb td{padding:8px;border-bottom:1px solid #f0f0f2;vertical-align:top}
   body.print-modal .modal{max-height:none;box-shadow:none;max-width:none;overflow:visible}
   body.print-modal .mhead h2{display:none}
   @page{margin:.5in}
+  body.print-wo #app,body.print-wo #modal,body.print-wo #toast{display:none!important}
+  body.print-wo #wo-print{display:block!important}
   .card,.item,.box{break-inside:avoid}
 }
 
@@ -921,10 +932,25 @@ const ACT = {
   openWork(d, e) { if (e) e.preventDefault(); const w = wo(d.id); if (!w) return; S.modal = {type:'work', row: clone(w)}; renderModal(); },
   saveWork(d) { saveWork(!!d.done); },
   async delWork() { const w = S.modal.row; if (!confirm(`Delete work order #${w.num} “${w.title}”? This can’t be undone.`)) return; (w.photos || []).forEach(p => B.unupload(p.path)); await del('work', w.id); S.modal = null; renderModal(); renderApp(); toast('Deleted'); },
-  printWork() { grab(); renderModal(); document.body.classList.add('print-modal');
+  /* read-only printout (2026-11-14): a clean sheet to hand to whoever does the job — not the edit form */
+  printWork() { grab();
     const w = S.modal.row, t = TYPES[w.type] || TYPES.other, st = (STATUS[w.status] || {name: w.status || ''}).name;
-    const off = addPrintLH(document.querySelector('#modal .modal') || $('#modal'), {title: 'Work order #' + (w.num || ''), sub: t.name + ' · ' + (w.title || ''), right: esc(st) + (w.created_at ? '<br>Opened ' + esc(fmtDT(w.created_at)) : ''), app: 'delcFACILITIES', foot: 'Work order'});
-    setTimeout(() => { window.print(); document.body.classList.remove('print-modal'); off(); }, 60); },
+    const a = asset(w.asset_id), pr = (PRIORITY[w.priority] || {name: ''}).name, costs = w.costs || [], ck = w.checklist || [];
+    const row = (k, v) => v ? `<tr><th>${k}</th><td>${v}</td></tr>` : '';
+    const box = document.createElement('div'); box.id = 'wo-print';
+    box.innerHTML = `<table class="wo-kv">${row('Type', esc(t.name))}${row('Status', esc(st))}${row('Priority', w.priority && w.priority !== 'normal' ? esc(pr) : '')}${row('Where', esc(w.location || ''))}${row('Equipment', a ? esc(a.name) : '')}${row('Assigned to', esc(cname(w.assignee_id) || ''))}${row('Due', w.due_date ? esc(fmtD(w.due_date)) : '')}${row('Requested by', esc([w.requested_by, w.requester_phone, w.requester_email].filter(Boolean).join(' · ')))}${row('Opened', esc(fmtDT(w.created_at)))}${row('Budget', num(w.budget) ? money(w.budget) : '')}</table>
+      <h3>What needs doing</h3><div class="wo-desc">${w.description ? esc(w.description) : '<span class="wo-blank">No details given.</span>'}</div>
+      ${ck.length ? `<h3>Checklist</h3><ul class="wo-ck">${ck.map(c => `<li><span class="wo-cb">${c.done ? '✓' : ''}</span>${esc(c.text)}</li>`).join('')}</ul>` : ''}
+      ${costs.length ? `<h3>Costs</h3><table class="wo-tbl"><tr><th>Date</th><th>What</th><th>Vendor</th><th class="r" style="text-align:right">Amount</th></tr>${costs.map(c => `<tr><td>${esc(fmtD(c.date))}</td><td>${esc(c.desc || '')}</td><td>${esc(c.vendor || '')}</td><td class="r">${money(c.amount)}</td></tr>`).join('')}<tr class="tot"><td colspan="3">Total</td><td class="r">${money(costs.reduce((x, c) => x + num(c.amount), 0))}</td></tr></table>` : ''}
+      ${(w.photos || []).filter(p => p.url).length ? `<h3>Photos</h3><div class="wo-ph">${w.photos.filter(p => p.url).slice(0, 6).map(p => `<img src="${esc(p.url)}" alt="">`).join('')}</div>` : ''}
+      ${(w.log || []).length ? `<h3>History</h3><table class="wo-tbl wo-log">${w.log.slice(-12).map(l => `<tr><td>${esc(fmtDT(l.at))}</td><td>${esc(l.by || '')}</td><td>${esc(l.text || '')}</td></tr>`).join('')}</table>` : ''}
+      <h3>Work done</h3><div class="wo-lines"><div></div><div></div><div></div></div>
+      <div class="wo-sign"><div>Completed by</div><div>Date</div><div>Time spent</div></div>`;
+    document.body.appendChild(box); document.body.classList.add('print-wo');
+    const off = addPrintLH(box, {title: 'Work order #' + (w.num || ''), sub: w.title || '', right: esc(st) + (w.created_at ? '<br>Opened ' + esc(fmtD(w.created_at)) : ''), app: 'delcFACILITIES', foot: 'Work order #' + (w.num || '')});
+    let gone = false; const done = () => { if (gone) return; gone = true; document.body.classList.remove('print-wo'); box.remove(); off(); window.removeEventListener('afterprint', done); };
+    window.addEventListener('afterprint', done);
+    setTimeout(() => { window.print(); setTimeout(done, 400); }, 60); },
   ckAdd() { const el = $('#ck_new'); const t = (el.value || '').trim(); if (!t) return; grab(); (S.modal.row.checklist = S.modal.row.checklist || []).push({text: t, done: false}); commitSub().then(() => { const n = $('#ck_new'); n && n.focus(); }); },
   ckDel(d) { grab(); S.modal.row.checklist.splice(+d.i, 1); commitSub(); },
   costAdd() { const amt = num($('#cost_amt').value); if (!amt) { toast('Enter an amount', 'bad'); return; } grab();
