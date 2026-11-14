@@ -199,7 +199,6 @@ table.tb td{padding:8px;border-bottom:1px solid #f0f0f2;vertical-align:top}
 const CONFIG = {
   url: 'https://ksdxhqyusaylfpyeecbv.supabase.co',
   key: 'sb_publishable_2LJBKHTG1fXcMzWWHf1Mrg_EsrC4_JC',
-  password: 'Delc.1200!',      // fallback only if the hub login service can't be reached
   appKey: 'facilities',
   hubUrl: 'https://delcdata.github.io/DELCAppsHub/',
   bucket: 'fac-photos',
@@ -882,7 +881,7 @@ const ACT = {
       if (!res || !res.ok) { err((res && res.error) || 'That username or password isn’t right.'); return; }
       session = res.session || DelcAuth.getSession();
       if (!DelcAuth.hasAppAccess(session, CONFIG.appKey)) { err('Your account doesn’t have access to delcFACILITIES yet. Ask an admin to turn it on in the Admin Portal.'); return; }
-    } else if (pw !== CONFIG.password) { err('The login service is unreachable and that isn’t the fallback password.'); return; }
+    } else { err('The DELC Apps login service can’t be reached right now. Check the internet connection and try again in a minute.'); return; }
     signIn(session, u); boot();
   },
   demo() { S.user = ($('#lu') && $('#lu').value.trim().toLowerCase()) || 'demo'; S.userName = S.user; S.backend = 'local'; lsSet('fac_user', S.user); lsSet('fac_backend', 'local'); boot(); },
