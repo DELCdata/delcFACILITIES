@@ -1769,6 +1769,15 @@ Object.assign(ACT, {
   .pfr{position:relative;overflow:hidden;background:#111;border-radius:8px;touch-action:none;cursor:grab;outline:3px solid #fff;outline-offset:-3px}
   .pfr:active{cursor:grabbing}.lightbox .pfr img{position:absolute;max-width:none!important;max-height:none!important;border-radius:0;user-select:none;-webkit-user-drag:none;pointer-events:none}`; document.head.appendChild(st); })();
 
+/* "Last changed by …" under the title of a saved record (filled in by shared-auth.js from updated_by / updated_at) — 2026-11-14 */
+const _renderModalLC = renderModal;
+renderModal = function () {
+  const r = _renderModalLC.apply(this, arguments);
+  try { const m = S.modal; const T = {work: 'fac_work', incident: 'fac_incidents', pm: 'fac_pm', asset: 'fac_assets', contact: 'fac_contacts', holder: 'fac_key_holders', key: 'fac_keys'}[m && m.type];
+    if (T && m.row && m.row.id && !m.row._new) { const h = document.querySelector('#modal .mhead h2'); if (h && !h.parentNode.querySelector('.delc-changed')) h.insertAdjacentHTML('afterend', `<span class="delc-changed" data-t="${T}" data-id="${esc(m.row.id)}"></span>`); } } catch (e) {}
+  return r;
+};
+
 (async function start() {
   const params = new URLSearchParams(location.search);
   if (params.get('demo') === '1') lsSet('fac_backend', 'local');
