@@ -1582,6 +1582,38 @@ document.head.insertAdjacentHTML('beforeend', `<style id="witness">
 .pdoc .box,.pdoc h2,.pdoc .pt th{-webkit-print-color-adjust:exact;print-color-adjust:exact}.pdoc .pst{border:1px solid #bbb;padding:5px 7px;margin-bottom:6px;break-inside:avoid}.pdoc .pst .txt{margin:3px 0}
 </style>`);
 
+/* ======== Key holders are people in delcPEOPLE (2026-11-13) ========
+   The name box offers everyone in delcPEOPLE. Picking someone links the key holder to that person; a brand-new name is added to
+   delcPEOPLE when you save (the database does the linking). Only names, phones and emails are read here — nothing else from delcPEOPLE. */
+S.people = []; S.pplOff = false;
+async function loadPeopleList() {
+  if (B !== Remote || !Remote.sb) return;
+  try { await Remote.q(Remote.sb.from('fac_key_holders').select('person_id').limit(1)); S.pplOff = false; } catch (_) { S.pplOff = true; }
+  try { const r = await Remote.q(Remote.sb.from('people_records').select('id,first:data->>first,last:data->>last,phone:data->>phone,email:data->>email,active:data->>active').eq('kind', 'people'));
+    S.people = (r || []).filter(p => p.active !== 'false').map(p => ({id: p.id, name: ((p.first || '') + ' ' + (p.last || '')).replace(/\s+/g, ' ').trim(), phone: p.phone || '', email: p.email || ''})).filter(p => p.name).sort((a, b) => a.name.localeCompare(b.name));
+  } catch (e) { console.warn('delcPEOPLE list', e); }
+  const dl = document.getElementById('ppl_list'); if (dl) dl.innerHTML = pplOpts();
+}
+const pplOpts = () => S.people.map(p => `<option value="${esc(p.name)}">`).join('');
+const pplFind = name => { const n = String(name || '').replace(/\s+/g, ' ').trim().toLowerCase(); return n ? S.people.find(p => p.name.toLowerCase() === n) : null; };
+function pplHint(h) { if (!S.people.length) return ''; const p = (h.person_id && S.people.find(x => x.id === h.person_id)) || pplFind(h.name);
+  return p ? `✓ Linked to <b>${esc(p.name)}</b> in delcPEOPLE — name, phone and email stay in step.` : 'Start typing to pick someone from delcPEOPLE. A new name is added to delcPEOPLE when you save.'; }
+const _mHolderPL = mHolder;
+mHolder = function (h) { let html = _mHolderPL(h);
+  html = html.replace('<input data-f="name" value="', '<input data-f="name" list="ppl_list" autocomplete="off" value="');
+  html = html.replace('<div class="grid2"><label class="f">Email', `<datalist id="ppl_list">${pplOpts()}</datalist><div class="tiny muted" id="ppl_hint" style="margin:-4px 0 2px">${pplHint(h)}</div><div class="grid2"><label class="f">Email`);
+  return html.replace('Also in the People list', 'Facilities contact (for emails)'); };
+document.addEventListener('input', e => { if (!e.target.matches || !e.target.matches('input[data-f="name"]') || !S.modal || S.modal.type !== 'holder') return;
+  const h = S.modal.row; const p = pplFind(e.target.value);
+  if (p) { h.person_id = p.id; const ph = $('#modal input[data-f="phone"], .modal input[data-f="phone"]'), em = $('#modal input[data-f="email"], .modal input[data-f="email"]');
+    if (ph && !ph.value.trim() && p.phone) ph.value = p.phone; if (em && !em.value.trim() && p.email) em.value = p.email; }
+  const hint = document.getElementById('ppl_hint'); if (hint) hint.innerHTML = pplHint({...h, name: e.target.value, person_id: p ? p.id : h.person_id}); });
+(function () { const _nh = ACT.newHolder, _oh = ACT.openHolder, _sh = ACT.saveHolder;
+  ACT.newHolder = function (d) { _nh.call(ACT, d); loadPeopleList(); };
+  ACT.openHolder = function (d) { _oh.call(ACT, d); loadPeopleList(); };
+  ACT.saveHolder = async function (d) { if (S.modal && S.modal.row && (S.pplOff || B !== Remote)) delete S.modal.row.person_id; return _sh.call(ACT, d); }; })();
+const _bootPL = boot; boot = async function () { const r = await _bootPL.apply(this, arguments); loadPeopleList(); return r; };
+
 (async function start() {
   const params = new URLSearchParams(location.search);
   if (params.get('demo') === '1') lsSet('fac_backend', 'local');
