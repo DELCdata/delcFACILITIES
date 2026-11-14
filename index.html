@@ -576,7 +576,7 @@ function viewSettings() {
 /* ---------------- photo widget ---------------- */
 function photoWidget(row, tags) {
   const ps = row.photos || [];
-  return `<div class="photos">${ps.map((p, i) => `<div class="photo">${p.tag ? `<span class="tag">${esc(p.tag)}</span>` : ''}<img src="${esc(p.url)}" alt="" data-act="zoom" data-i="${i}"><button class="del" data-act="delPhoto" data-i="${i}" title="Remove">✕</button>
+  return `<div class="photos">${ps.map((p, i) => `<div class="photo">${p.tag ? `<span class="tag">${esc(p.tag)}</span>` : ''}${facThumb(p, i)}<button class="del" data-act="delPhoto" data-i="${i}" title="Remove">✕</button>
       ${tags ? `<div class="cap"><select data-chg="photoTag" data-i="${i}"><option value="">tag…</option>${['before','during','after'].map(t => `<option ${p.tag === t ? 'selected' : ''}>${t}</option>`).join('')}</select></div>` : `<div class="cap tiny muted">${esc(fmtD((p.at || '').slice(0, 10)))}</div>`}</div>`).join('')}
     <label class="addphoto">📷<span>Add photos</span><input type="file" accept="image/*" multiple class="hidden" data-chg="addPhotos"></label></div>`;
 }
@@ -1233,7 +1233,7 @@ function mInc(i) {
     <div class="grid2"><label class="f">People involved<input data-f="people" value="${esc(i.people || '')}"></label><label class="f">Witnesses<input data-f="witnesses" value="${esc(i.witnesses || '')}"></label></div>
     <div class="grid2"><label class="f">Injuries<input data-f="injuries" value="${esc(i.injuries || '')}" placeholder="None"></label><label class="f">Damage or loss ($)<input data-f="damage" data-t="num" type="number" min="0" step="0.01" value="${esc(i.damage || '')}"></label></div>
     <div class="grid2"><label class="chk" style="align-self:end"><input type="checkbox" data-f="police" data-t="bool" ${i.police ? 'checked' : ''}> Police were called</label><label class="f">Police report #<input data-f="police_report" value="${esc(i.police_report || '')}"></label></div>
-    <div><div class="sectitle">Photos</div><div class="photos">${(i.photos || []).map((p, n) => `<div class="photo"><img src="${esc(p.url)}" alt="" data-act="zoom" data-i="${n}"><button class="del" data-act="incPhotoDel" data-i="${n}" title="Remove">✕</button></div>`).join('')}<label class="addphoto">📷<span>Add photos</span><input type="file" accept="image/*" multiple class="hidden" data-chg="incPhotos"></label></div></div>
+    <div><div class="sectitle">Photos</div><div class="photos">${(i.photos || []).map((p, n) => `<div class="photo">${facThumb(p, n)}<button class="del" data-act="incPhotoDel" data-i="${n}" title="Remove">✕</button></div>`).join('')}<label class="addphoto">📷<span>Add photos</span><input type="file" accept="image/*" multiple class="hidden" data-chg="incPhotos"></label></div></div>
     <label class="f">What was done<textarea data-f="actions" rows="2">${esc(i.actions || '')}</textarea></label>
     <label class="f">Follow-up needed<textarea data-f="followup" rows="2">${esc(i.followup || '')}</textarea></label>
     <div class="grid2"><label class="f">Status<select data-f="status">${Object.keys(INC_STATUS).map(s => `<option ${s === (i.status || 'New') ? 'selected' : ''}>${s}</option>`).join('')}</select></label><label class="f">Reported by<input data-f="reported_by" value="${esc(i.reported_by || me())}"></label></div>
@@ -1388,7 +1388,7 @@ mInc = function (i) {
     <div class="grid2"><label class="chk" style="align-self:end"><input type="checkbox" data-f="police" data-t="bool" ${i.police ? 'checked' : ''}> Police were called</label><label class="f">Police report #<input data-f="police_report" value="${esc(i.police_report || '')}"></label></div>
     <div class="grid2"><label class="f">Police department<input data-d="police_agency" value="${esc(det.police_agency || '')}" placeholder="e.g. Allegheny Twp Police"></label><label class="f">Officer name / badge<input data-d="police_officer" value="${esc(det.police_officer || '')}"></label></div>
     <div class="grid2"><label class="f">Injuries (short)<input data-f="injuries" value="${esc(i.injuries || '')}" placeholder="None"></label><label class="f">Damage or loss ($)<input data-f="damage" data-t="num" type="number" min="0" step="0.01" value="${esc(i.damage || '')}"></label></div>
-    <div><div class="sectitle">Photos</div><div class="photos">${(i.photos || []).map((p, n) => `<div class="photo"><img src="${esc(p.url)}" alt="" data-act="zoom" data-i="${n}"><button class="del" data-act="incPhotoDel" data-i="${n}" title="Remove">✕</button></div>`).join('')}<label class="addphoto">📷<span>Add photos</span><input type="file" accept="image/*" multiple class="hidden" data-chg="incPhotos"></label></div></div>`);
+    <div><div class="sectitle">Photos</div><div class="photos">${(i.photos || []).map((p, n) => `<div class="photo">${facThumb(p, n)}<button class="del" data-act="incPhotoDel" data-i="${n}" title="Remove">✕</button></div>`).join('')}<label class="addphoto">📷<span>Add photos</span><input type="file" accept="image/*" multiple class="hidden" data-chg="incPhotos"></label></div></div>`);
   const follow = incSec(base + 1, 'What was done and follow-up', `
     <label class="f">What was done right away<textarea data-f="actions" rows="2">${esc(i.actions || '')}</textarea></label>
     <label class="f">Follow-up needed<textarea data-f="followup" rows="2">${esc(i.followup || '')}</textarea></label>
@@ -1693,6 +1693,8 @@ function facPhotoImg(p) {
   const ch = c.cw * c.ar / A, w = 100 / c.cw, h = 100 / ch, l = -(c.cx - c.cw / 2) / c.cw * 100, t = -(c.cy - ch / 2) / ch * 100;
   return `<span class="cimg"><img src="${esc(p.url)}" alt="" style="position:absolute;max-width:none;width:${w.toFixed(3)}%;height:${h.toFixed(3)}%;left:${l.toFixed(3)}%;top:${t.toFixed(3)}%"></span>`;
 }
+/* on-screen thumbnails use the same 4:3 framing as the reports, so the screen matches what prints */
+function facThumb(p, i) { return facPhotoImg(p).replace('<span class="cimg"', `<span class="cimg pthumb${p.crop ? ' framed' : ''}" data-act="zoom" data-i="${i}" role="button" tabindex="0" title="${p.crop ? 'Framed for reports — tap to see it large or change the framing' : 'Tap to see it large'}"`); }
 function facPhotoSaveCrop(i, crop) {
   const m = S.modal; if (!m || !m.row || !m.row.photos || !m.row.photos[i]) return;
   if (m.type === 'incident') { const r = grabInc(); if (crop) r.photos[i].crop = crop; else delete r.photos[i].crop; m.keepScroll = true;
@@ -1752,6 +1754,9 @@ Object.assign(ACT, {
 (function () { const st = document.createElement('style'); st.textContent = `
   .cimg{position:relative;overflow:hidden;display:inline-block;background:#eee;vertical-align:top}
   .pdoc .pphotos .cimg{width:1.6in;height:1.2in;border:1px solid #999}
+  .photo .tag,.photo .del{z-index:2}
+  .photo .cimg.pthumb{display:block;width:100%;aspect-ratio:4/3;height:auto;cursor:zoom-in;background:#e9edf3}
+  .photo .cimg.pthumb.framed::after{content:'✂';position:absolute;left:5px;bottom:5px;width:20px;height:20px;border-radius:50%;background:rgba(27,50,84,.85);color:#fff;font-size:11px;display:grid;place-items:center}
   #wo-print .wo-ph .cimg{width:150px;height:112px;border-radius:6px;border:1px solid #ccc}
   .lightbox.pz{flex-direction:column;gap:10px;cursor:default}
   .pz-top{position:absolute;top:10px;left:14px;right:14px;display:flex;align-items:center;gap:8px;color:#fff}.pz-n{font-size:14px;opacity:.85}
