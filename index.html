@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script src="https://delcdata.github.io/DELCAppsHub/delc-kit.js?v=2"></script>
 <title>delcFACILITIES</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="https://delcdata.github.io/DELCAppsHub/shared-auth.js?v=3"></script>
@@ -153,6 +154,10 @@ table.tb td{padding:8px;border-bottom:1px solid #f0f0f2;vertical-align:top}
   body.print-modal .modal{max-height:none;box-shadow:none;max-width:none;overflow:visible}
   .card,.item,.box{break-inside:avoid}
 }
+
+/* shared header buttons (2026-11-14) — same look in every delcAPP; delc-kit.js carries the full rule, this is the fallback */
+.delc-hbtn{background:rgba(255,255,255,.12);border:0;color:#fff;border-radius:8px;padding:5px 11px;font-size:13px;font-weight:700;text-decoration:none;white-space:nowrap;cursor:pointer}.delc-hbtn.pri{background:#fff;color:#1B3254}
+.brand .wm{font-size:19px!important;font-family:var(--delc-display,inherit)}
 </style>
 </head>
 <body>
@@ -403,8 +408,8 @@ function header() {
   const tabs = [['dash','Dashboard'],['work','Work Orders', nNew],['pm','Maintenance', nOver],['projects','Projects'],['assets','Equipment'],['contacts','People'],['emails','Emails'],['settings','Settings']];
   return `${S.backend === 'local' ? '<div class="demo-banner">Demo mode — data is saved on this device only. Emails can’t be sent in demo mode.</div>' : ''}
   <header class="top"><div class="brand"><span class="wm">delc<b>FACILITIES</b></span></div><div class="spacer"></div>
-    <button class="tbtn" data-act="newWork" data-type="repair" style="background:var(--gold);border-color:var(--gold);color:var(--navy);font-weight:700">+ New</button>
-    <span class="small uname" style="opacity:.85">${esc(S.userName || S.user)}</span><a class="tbtn" href="${CONFIG.hubUrl}">Apps</a><button class="tbtn" data-act="logout">Sign out</button></header>
+    <button class="tbtn delc-hbtn pri" data-act="newWork" data-type="repair">+ New</button>
+    <span class="small uname" style="opacity:.85">${esc(S.userName || S.user)}</span><a class="tbtn delc-hbtn" href="${CONFIG.hubUrl}">Apps</a><button class="tbtn delc-hbtn" data-act="logout">Sign out</button></header>
   <nav class="tabs">${tabs.map(([k, l, n]) => `<button class="tab ${S.view === k ? 'on' : ''}" data-act="tab" data-v="${k}">${l}${n ? `<span class="n">${n}</span>` : ''}</button>`).join('')}</nav>`;
 }
 function viewDash() {
