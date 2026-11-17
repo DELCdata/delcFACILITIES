@@ -1122,6 +1122,7 @@ const INC_TYPES = ['Break-in / forced entry', 'Theft', 'Vandalism', 'Suspicious 
 const INC_STATUS = {New: 'info', 'Under review': 'gold', 'Follow-up': 'warn', Closed: 'ok'};
 const SEVERITY = {Low: 'gray', Medium: '', High: 'warn', Critical: 'bad'};
 const KEY_UNK = 'Not Returned - Unknown'; const holderGone = h => h.status === 'Lost' || h.status === KEY_UNK;
+const keyGone = (kid, st) => S.holders.filter(h => h.status === st && (h.keys || []).some(x => x.key_id === kid));
 const holderDue = h => h.status === 'Active' && (!h.confirmed_at || daysFrom(h.confirmed_at) < -365);
 const keyOf = id => S.keys.find(k => k.id === id);
 const keyNames = h => (h.keys || []).map(x => { const k = keyOf(x.key_id); return k ? k.name + (x.copy ? ' #' + x.copy : '') : ''; }).filter(Boolean);
@@ -1170,26 +1171,26 @@ renderApp = function () {
 /* dashboard: security + keys tiles */
 const _viewDash2 = viewDash;
 viewDash = function () {
-  const h = _viewDash2(); const open = S.incidents.filter(incOpen); const due = S.holders.filter(holderDue); const lost = S.holders.filter(holderGone);
-  const tiles = `<button class="stat ${S.incidents.some(i => i.status === 'New') ? 'alert' : ''}" data-act="tab" data-v="security"><b>${open.length}</b><span>open security incidents</span></button><button class="stat ${due.length ? 'alert' : ''}" data-act="tab" data-v="keys"><b>${due.length}</b><span>key holders to confirm</span></button>${lost.length ? `<button class="stat alert" data-act="tab" data-v="keys"><b>${lost.length}</b><span>keys lost or not returned</span></button>` : ''}`;
+  const h = _viewDash2(); const open = S.incidents.filter(incOpen); const due = S.holders.filter(holderDue); const lost = S.holders.filter(h => h.status === 'Lost'); const unk = S.holders.filter(h => h.status === KEY_UNK);
+  const tiles = `<button class="stat ${S.incidents.some(i => i.status === 'New') ? 'alert' : ''}" data-act="tab" data-v="security"><b>${open.length}</b><span>open security incidents</span></button><button class="stat ${due.length ? 'alert' : ''}" data-act="tab" data-v="keys"><b>${due.length}</b><span>key holders to confirm</span></button>${lost.length ? `<button class="stat alert" data-act="keysGone" data-v="lost"><b>${lost.length}</b><span>key holders with a lost key</span></button>` : ''}${unk.length ? `<button class="stat alert" data-act="keysGone" data-v="unknown"><b>${unk.length}</b><span>key holders – not returned, unknown</span></button>` : ''}`;
   return h.replace('<div class="stats">', '<div class="stats">' + tiles);
 };
 
 /* ---- Keys ---- */
 function viewKeys() {
   const q = S.kq.toLowerCase(); const f = S.kf;
-  const L = S.holders.filter(h => (f === 'all' ? h.status !== 'Returned' : f === 'due' ? holderDue(h) : f === 'groups' ? h.group_name : f === 'lost' ? holderGone(h) : f === 'returned' ? h.status === 'Returned' : true) && (!q || [h.name, h.phone, h.group_name, ...keyNames(h)].join(' ').toLowerCase().includes(q)))
+  const L = S.holders.filter(h => (f === 'all' ? h.status !== 'Returned' && !holderGone(h) : f === 'due' ? holderDue(h) : f === 'groups' ? h.group_name : f === 'lost' ? h.status === 'Lost' : f === 'unknown' ? h.status === KEY_UNK : f === 'returned' ? h.status === 'Returned' : true) && (!q || [h.name, h.phone, h.group_name, ...keyNames(h)].join(' ').toLowerCase().includes(q)))
     .sort((a, b) => (a.group_name || '~').localeCompare(b.group_name || '~') || a.name.localeCompare(b.name));
-  const due = S.holders.filter(holderDue).length;
+  const due = S.holders.filter(holderDue).length; const nLost = S.holders.filter(h => h.status === 'Lost').length, nUnk = S.holders.filter(h => h.status === KEY_UNK).length;
   const row = h => `<div class="item" data-act="openHolder" data-id="${esc(h.id)}" style="${h.status === 'Returned' ? 'opacity:.6' : ''}"><div class="ic">🔑</div><div class="main"><div class="t">${esc(h.name)}${h.group_name ? ` <span class="chip">${esc(h.group_name)}</span>` : ''}${h.source === 'board' ? ' <span class="tiny muted">· from delcBOARD</span>' : ''}</div>
     <div class="s">${h.phone ? `<span>📞 ${esc(h.phone)}</span>` : '<span style="color:var(--warn)">No phone</span>'}${keyNames(h).map(n => `<span class="chip gold">${esc(n)}</span>`).join('') || '<span class="muted">No keys recorded</span>'}</div>
-    <div class="s" style="margin-top:4px">${h.status === KEY_UNK ? '<span class="chip bad">Not Returned - Unknown</span>' : h.status === 'Lost' ? '<span class="chip bad">Lost / not returned</span>' : h.status === 'Returned' ? '<span class="chip gray">Returned</span>' : holderDue(h) ? `<span class="chip warn">Not confirmed in 12 months</span><button class="btn sm" data-act="holderOk" data-id="${esc(h.id)}" title="They still have their keys — mark confirmed today">✓ Confirm</button>` : `<span class="tiny muted">✓ confirmed ${esc(fmtD(h.confirmed_at))}</span>`}</div></div></div>`;
+    <div class="s" style="margin-top:4px">${h.status === KEY_UNK ? '<span class="chip bad">Not Returned - Unknown</span>' : h.status === 'Lost' ? '<span class="chip bad">Lost</span>' : h.status === 'Returned' ? '<span class="chip gray">Returned</span>' : holderDue(h) ? `<span class="chip warn">Not confirmed in 12 months</span><button class="btn sm" data-act="holderOk" data-id="${esc(h.id)}" title="They still have their keys — mark confirmed today">✓ Confirm</button>` : `<span class="tiny muted">✓ confirmed ${esc(fmtD(h.confirmed_at))}</span>`}</div></div></div>`;
   return `<div class="page">
     <div class="toolbar"><div class="small muted" style="flex:1">Everyone who holds a church key — volunteers, staff and outside groups. Confirm each person once a year. Group key holders entered in delcBOARD show up here too.</div><button class="btn" data-act="newKey">+ Key type</button><button class="btn gold" data-act="newHolder">+ Key holder</button></div>
     ${due ? `<div class="notice" style="margin-bottom:12px">🔑 ${due} key holder${due === 1 ? ' hasn’t' : 's haven’t'} been confirmed in the last 12 months. Call them, then tap ✓ Confirm.</div>` : ''}
-    <div class="row" style="gap:8px;margin-bottom:10px;flex-wrap:wrap"><input class="inp" data-inp="kq" placeholder="Search name, phone, group or key" value="${esc(S.kq)}" style="max-width:300px">${[['all', 'Current'], ['due', 'To confirm'], ['groups', 'Groups'], ['lost', 'Lost / not returned'], ['returned', 'Returned']].map(([k, l]) => `<button class="btn sm ${S.kf === k ? 'pri' : ''}" data-act="kf" data-v="${k}">${l}</button>`).join('')}</div>
+    <div class="row" style="gap:8px;margin-bottom:10px;flex-wrap:wrap"><input class="inp" data-inp="kq" placeholder="Search name, phone, group or key" value="${esc(S.kq)}" style="max-width:300px">${[['all', 'Current'], ['due', 'To confirm'], ['groups', 'Groups'], ['lost', 'Lost' + (nLost ? ' (' + nLost + ')' : '')], ['unknown', KEY_UNK + (nUnk ? ' (' + nUnk + ')' : '')], ['returned', 'Returned']].map(([k, l]) => `<button class="btn sm ${S.kf === k ? 'pri' : ''}" data-act="kf" data-v="${k}">${l}</button>`).join('')}</div>
     <div class="keysdash"><div class="card"><h3 style="margin:0 0 10px">Key holders <span class="tiny muted">${L.length}</span></h3><div class="list">${L.map(row).join('') || '<div class="empty">No one here.</div>'}</div></div>
-      <div class="card"><h3 style="margin:0 0 10px">Keys</h3><div class="list">${S.keys.map(k => { const n = issuedCount(k.id); return `<div class="item" data-act="openKey" data-id="${esc(k.id)}"><div class="ic">🗝️</div><div class="main"><div class="t">${esc(k.name)}${k.tag ? ` <span class="chip">${esc(k.tag)}</span>` : ''}</div><div class="s">${k.opens ? `<span>${esc(k.opens)}</span>` : ''}<span>${n} out${num(k.copies) ? ` of ${num(k.copies)} copies` : ''}</span></div></div>${num(k.copies) && n >= num(k.copies) ? '<span class="chip warn">all out</span>' : ''}</div>`; }).join('') || '<div class="empty">Add the keys the church has (front doors, FLC, office…).</div>'}</div>
+      <div class="card"><h3 style="margin:0 0 10px">Keys</h3><div class="list">${S.keys.map(k => { const n = issuedCount(k.id), nl = keyGone(k.id, 'Lost').length, nu = keyGone(k.id, KEY_UNK).length; return `<div class="item" data-act="openKey" data-id="${esc(k.id)}"><div class="ic">🗝️</div><div class="main"><div class="t">${esc(k.name)}${k.tag ? ` <span class="chip">${esc(k.tag)}</span>` : ''}</div><div class="s">${k.opens ? `<span>${esc(k.opens)}</span>` : ''}<span>${n} out${num(k.copies) ? ` of ${num(k.copies)} copies` : ''}</span>${nl ? `<span class="chip bad">${nl} lost</span>` : ''}${nu ? `<span class="chip bad">${nu} not returned – unknown</span>` : ''}</div></div>${num(k.copies) && n >= num(k.copies) ? '<span class="chip warn">all out</span>' : ''}</div>`; }).join('') || '<div class="empty">Add the keys the church has (front doors, FLC, office…).</div>'}</div>
         <div class="tiny muted" style="margin-top:8px">Keep alarm and lockbox codes out of this app.</div></div></div></div>`;
 }
 function mHolder(h) {
@@ -1209,6 +1210,7 @@ function mKey(k) { return `<div class="mhead"><h2>🗝️ ${k._new ? 'New key ty
   <div class="grid2"><label class="f">Opens<input data-f="opens" value="${esc(k.opens || '')}"></label><label class="f">Copies made<input data-f="copies" data-t="int" type="number" min="0" value="${esc(k.copies || '')}"></label></div>
   <label class="f">Notes<textarea data-f="notes" rows="2">${esc(k.notes || '')}</textarea></label>
   <div class="small muted">${issuedCount(k.id)} currently out: ${esc(S.holders.filter(h => h.status === 'Active' && (h.keys || []).some(x => x.key_id === k.id)).map(h => h.name).join(', ') || 'nobody')}</div>
+  ${keyGone(k.id, 'Lost').length ? `<div class="small" style="color:var(--bad)">Lost: ${esc(keyGone(k.id, 'Lost').map(h => h.name).join(', '))}</div>` : ''}${keyGone(k.id, KEY_UNK).length ? `<div class="small" style="color:var(--bad)">Not returned – unknown: ${esc(keyGone(k.id, KEY_UNK).map(h => h.name).join(', '))}</div>` : ''}
   <div class="row" style="justify-content:flex-end;gap:8px">${k._new ? '' : '<button class="btn ghost" data-act="delKey" style="margin-right:auto;color:var(--bad)">Delete</button>'}<button class="btn" data-act="closeModal">Cancel</button><button class="btn pri" data-act="saveKey">Save</button></div></div>`; }
 
 /* ---- Security / incident reports ---- */
@@ -1254,7 +1256,7 @@ renderModal = function () {
 };
 const clean = r => { const x = {...r}; delete x._new; return x; };
 Object.assign(ACT, {
-  kf(d) { S.kf = d.v; renderApp(); }, incF(d) { S.incF = d.v; renderApp(); },
+  kf(d) { S.kf = d.v; renderApp(); }, keysGone(d, e) { S.kf = d.v; ACT.tab({v: 'keys'}, e); }, incF(d) { S.incF = d.v; renderApp(); },
   newHolder() { S.modal = {type: 'holder', row: {id: uid(), name: '', phone: '', keys: [], status: 'Active', confirmed_at: today(), source: 'facilities', _new: true}}; renderModal(); },
   openHolder(d) { const h = S.holders.find(x => x.id === d.id); if (h) { S.modal = {type: 'holder', row: clone(h)}; renderModal(); } },
   holderToday() { grabHolder(); S.modal.row.confirmed_at = today(); S.modal.keepScroll = true; renderModal(); toast('Marked confirmed today — Save to keep it'); },
